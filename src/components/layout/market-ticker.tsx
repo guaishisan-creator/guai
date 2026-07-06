@@ -1,4 +1,39 @@
-"use client";import{marketItems}from"@/constants/finance";import{useLocale}from"@/i18n/locale-provider";import{chromeCopy}from"@/i18n/finance-copy";
-const values=["$53.27M","952","$2.16T","$64.94B","BTC: 60.1%  ETH: 11.4%","1.24 Gwei"];
-function TickerTrack({duplicate=false}:{duplicate?:boolean}){const{locale}=useLocale();const labels=chromeCopy[locale].ticker;return <div data-testid="market-ticker-track" aria-hidden={duplicate?"true":undefined} className="market-ticker-track flex shrink-0 items-center gap-10 pr-10">{marketItems.map((item,i)=>{if(i===0)return <div key={i} className="shrink-0">© 2026 CoinMarketCap</div>;const label=i<=5?labels[i-1]:i===6?"Gas":labels[i-2];const value=i<=6?values[i-1]:undefined;return <div key={i} className="flex shrink-0 items-center gap-1.5"><span>{i>6?`✓ ${label}`:label}{value?":":""}</span>{value&&<span className="text-electric">{value}</span>}{item.change&&<span className={item.trend==="up"?"text-success":"text-danger"}>{item.trend==="up"?"▲":"▼"} {item.change}</span>}</div>})}</div>}
-export function MarketTicker(){return <div className="relative z-10 border-b border-line bg-surface/50"><div className="market-ticker-viewport mx-auto max-w-content py-2 text-xs text-muted"><div className="market-ticker-marquee flex w-max"><TickerTrack/><TickerTrack duplicate/></div></div></div>}
+"use client";
+
+import { marketItems } from "@/constants/finance";
+import { chromeCopy } from "@/i18n/finance-copy";
+import { useLocale } from "@/i18n/locale-provider";
+
+const values = ["$53.27M", "952", "$2.16T", "$64.94B", "BTC: 60.1%  ETH: 11.4%", "1.24 Gwei"];
+
+function TickerTrack({ duplicate = false }: { duplicate?: boolean }) {
+  const { locale } = useLocale();
+  const labels = chromeCopy[locale].ticker;
+
+  return <div data-testid="market-ticker-track" aria-hidden={duplicate ? "true" : undefined} className="market-ticker-track flex shrink-0 items-center gap-10 pr-10">
+    {marketItems.map((item, i) => {
+      if (i === 0) return <div key={i} className="shrink-0">{"\u00a9"} 2026 CoinMarketCap</div>;
+      const label = i <= 5 ? labels[i - 1] : i === 6 ? "Gas" : labels[i - 2];
+      const value = i <= 6 ? values[i - 1] : undefined;
+
+      return <div key={i} className="flex shrink-0 items-center gap-1.5">
+        <span>{i > 6 ? `\u2713 ${label}` : label}{value ? ":" : ""}</span>
+        {value && <span className="text-electric">{value}</span>}
+        {item.change && <span className={item.trend === "up" ? "text-success" : "text-danger"}>{item.trend === "up" ? "\u25b2" : "\u25bc"} {item.change}</span>}
+      </div>;
+    })}
+  </div>;
+}
+
+export function MarketTicker({ variant = "top", testId }: { variant?: "top" | "highlight"; testId?: string }) {
+  const highlight = variant === "highlight";
+
+  return <div data-testid={testId} className={`relative z-10 ${highlight ? "market-ticker-highlight overflow-hidden rounded-full border border-cyan/70 bg-cyan/10 shadow-cyan" : "border-b border-line bg-surface/50"}`}>
+    <div className={`market-ticker-viewport mx-auto ${highlight ? "py-2.5 text-xs font-medium text-ink" : "max-w-content py-2 text-xs text-muted"}`}>
+      <div className="market-ticker-marquee flex w-max">
+        <TickerTrack />
+        <TickerTrack duplicate />
+      </div>
+    </div>
+  </div>;
+}

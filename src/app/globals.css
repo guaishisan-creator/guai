@@ -17,9 +17,12 @@ button { font: inherit; }
 .hero-visual { background-image: theme(backgroundImage.hero-glow); }
 .market-ticker-viewport { overflow: hidden; }
 .market-ticker-marquee { animation: market-ticker-scroll 48s linear infinite; }
+.market-ticker-highlight { box-shadow: inset 0 0 0 1px color-mix(in srgb, theme(colors.electric) 36%, transparent), 0 0 22px color-mix(in srgb, theme(colors.electric) 22%, transparent); }
+.market-ticker-highlight .market-ticker-viewport { max-width: 100%; }
+.market-ticker-highlight .market-ticker-track > div:first-child { color: theme(colors.warning); }
 @keyframes market-ticker-scroll { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) {
-  .market-ticker-viewport { overflow-x: auto; }
+  .market-ticker-viewport { overflow: hidden; }
   .market-ticker-marquee { animation: none; }
 }
 .promo-carousel-track { animation: promo-carousel-scroll 18s ease-in-out infinite; }

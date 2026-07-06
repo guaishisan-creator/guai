@@ -4,6 +4,7 @@ import { FeatureCards } from "@/components/finance/feature-cards";
 import { QuickActions } from "@/components/finance/quick-actions";
 import { SavingsRateTable } from "@/components/finance/savings-rate-table";
 import { HeroSection } from "@/components/hero/hero-section";
+import { MarketTicker } from "@/components/layout/market-ticker";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { PopularCoins } from "@/components/market/popular-coins";
 import { fixedSavingsRates, flexibleSavingsRates, savingsTables } from "@/constants/finance";
@@ -12,6 +13,7 @@ export function MobileHomePage() {
   return <div data-testid="mobile-home" className="lg:hidden">
     <main className="relative z-10 mx-auto grid gap-3 px-page py-3 pb-mobile-nav sm:px-6">
       <HeroSection />
+      <MarketTicker variant="highlight" testId="mobile-highlight-ticker" />
       <FeatureCards />
       <div data-testid="mobile-rates" className="grid gap-3">
         <SavingsRateTable {...savingsTables.flexible} rates={flexibleSavingsRates} tone="cyan" />
