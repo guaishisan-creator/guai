@@ -39,6 +39,7 @@ describe("finance constants", () => {
     expect(coins.map((coin) => coin.symbol)).toEqual([
       "BTC", "ETH", "BNB", "XRP", "DOGE", "DOT",
     ]);
+    expect(navItems.map((item) => item.href)).toEqual(["/", "/", "/pool", "/loan", "/#features", "/#features", "/docs"]);
     expect(benefits).toHaveLength(4);
     expect(quickActions).toHaveLength(4);
   });
