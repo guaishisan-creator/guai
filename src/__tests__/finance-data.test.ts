@@ -32,7 +32,7 @@ describe("finance constants", () => {
 
   it("contains the revised shared homepage content", () => {
     expect(brand.name).toBe("Blockchain Savings");
-    expect(brand.wallet).toBe("Start Savings");
+    expect(brand.wallet).toBe("ReceiveVoucher");
     expect(heroContent.title).toBe("Blockchain Savings");
     expect(featureCards.map((card) => card.title)).not.toContain("定期储蓄计划");
     expect(featureCards.map((card) => card.title)).not.toContain("流动性挖矿");

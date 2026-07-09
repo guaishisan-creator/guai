@@ -11,7 +11,7 @@ import type {
   SavingsRate,
 } from "@/types/finance";
 
-export const brand = { name: "Blockchain Savings", mark: "BS", language: "简体中文", wallet: "Start Savings" } as const;
+export const brand = { name: "Blockchain Savings", mark: "BS", language: "简体中文", wallet: "ReceiveVoucher" } as const;
 export const uiText = {
   mainNavigation: "主导航",
   mobileNavigation: "移动端导航",

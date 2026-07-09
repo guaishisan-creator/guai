@@ -33,7 +33,7 @@ export function DesktopFlowFooter() {
           <span key={label}><b>{value}</b><small>{label}</small></span>
         ))}
       </div>
-      <div className="desktop-flow-lanes" aria-hidden="true">
+      <div data-testid="desktop-flow-lanes" className="desktop-flow-lanes" aria-hidden="true">
         {lanes.map((lane, index) => (
           <div key={index} data-testid="desktop-flow-lane" className={`desktop-flow-lane desktop-flow-lane-${index + 1}`}>
             {[...lane, ...lane].map((item, itemIndex) => (
