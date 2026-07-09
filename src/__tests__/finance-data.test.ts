@@ -35,13 +35,15 @@ describe("finance constants", () => {
     expect(brand.wallet).toBe("ReceiveVoucher");
     expect(heroContent.title).toBe("Blockchain Savings");
     expect(featureCards.map((card) => card.title)).not.toContain("定期储蓄计划");
-    expect(featureCards).toHaveLength(3);
+    expect(featureCards.map((card) => card.title)).not.toContain("流动性挖矿");
+    expect(featureCards).toHaveLength(2);
     expect(coins.map((coin) => coin.symbol)).toEqual([
       "BTC", "ETH", "BNB", "XRP", "DOGE", "DOT",
     ]);
     expect(navItems.map((item) => item.href)).toEqual(["/", "/", "/pool", "/loan", "/#mystery-box", "/#invite-friends", "/docs"]);
     expect(benefits).toHaveLength(4);
-    expect(quickActions).toHaveLength(4);
+    expect(quickActions.map((item) => item.title)).not.toContain("流动性挖矿");
+    expect(quickActions).toHaveLength(3);
   });
 
   it("contains daily-only fixed and flexible savings ranges", () => {

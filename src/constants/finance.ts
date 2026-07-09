@@ -72,18 +72,18 @@ export const heroContent = {
   ],
 } as const;
 
-export const quickActions: QuickAction[] = [
+export const quickActions: QuickAction[] = ([
   { title: "盲盒抽奖", description: "100%中奖", icon: "gift", tone: "orange" },
   { title: "邀请好友", description: "最高返佣 15%", icon: "users", tone: "blue" },
   { title: "流动性挖矿", description: "赚取平台通证", icon: "chart", tone: "green" },
   { title: "定期储蓄", description: "最高年化 11%", icon: "shield", tone: "purple" },
-];
+] as QuickAction[]).filter((item) => item.icon !== "chart");
 
-export const featureCards: FeatureCard[] = [
+export const featureCards: FeatureCard[] = ([
   { title: "盲盒抽奖", subtitle: "100%中奖", valueLabel: "最高奖励", value: "8888 USDC", button: "去抽奖", icon: "gift", tone: "purple" },
   { title: "邀请好友", subtitle: "享高额返佣", valueLabel: "最高返佣", value: "15%", button: "立即邀请", icon: "users", tone: "blue" },
   { title: "流动性挖矿", subtitle: "提供流动性", valueLabel: "赚取", value: "平台通证", button: "立即参与", icon: "coins", tone: "orange" },
-];
+] as FeatureCard[]).filter((item) => item.icon !== "coins");
 
 export const coinListHeading = "热门币种";
 export const coinColumns = ["币种", "价格", "24H涨跌", "24H成交额", "趋势"] as const;

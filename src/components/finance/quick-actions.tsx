@@ -6,11 +6,11 @@ import { GlowIcon } from "@/components/ui/glow-icon";
 import { useLocale } from "@/i18n/locale-provider";
 import { getFinanceCopy } from "@/i18n/finance-copy";
 
-const actionHrefs = [actionLinks.mysteryBox, actionLinks.invite, actionLinks.liquidityMining, actionLinks.fixedSavings] as const;
+const actionHrefs = [actionLinks.mysteryBox, actionLinks.invite, actionLinks.fixedSavings] as const;
 
 export function QuickActions() {
   const { locale } = useLocale();
-  const c = getFinanceCopy(locale).quick;
+  const c = getFinanceCopy(locale).quick.filter((_, index) => index !== 2);
 
   return <section data-testid="quick-actions" className="space-y-3">
     {quickActions.map((x, i) => <a key={x.icon} href={x.href ?? actionHrefs[i]} className="panel panel-hover flex items-center gap-4 p-4 lg:p-3">

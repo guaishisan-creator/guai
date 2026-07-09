@@ -1,6 +1,5 @@
 import { BenefitsBar } from "@/components/finance/benefits-bar";
 import { AdvantagesPanel } from "@/components/finance/advantages-panel";
-import { FeatureCards } from "@/components/finance/feature-cards";
 import { QuickActions } from "@/components/finance/quick-actions";
 import { SavingsSnapshot } from "@/components/finance/savings-snapshot";
 import { SavingsRateTable } from "@/components/finance/savings-rate-table";
@@ -9,15 +8,14 @@ import { fixedSavingsRates, flexibleSavingsRates, savingsTables } from "@/consta
 
 export function DesktopHomePage() {
   return <main data-testid="desktop-home" className="relative z-10 mx-auto hidden max-w-content px-6 py-3 lg:block">
+    <div data-testid="desktop-rates" className="mb-3 grid grid-cols-2 gap-3">
+      <SavingsRateTable {...savingsTables.flexible} rates={flexibleSavingsRates} tone="cyan" />
+      <SavingsRateTable {...savingsTables.fixed} rates={fixedSavingsRates} tone="violet" />
+    </div>
     <div className="grid grid-cols-12 gap-3">
       <div className="col-span-9 space-y-3">
-        <FeatureCards anchorId="features" />
-        <div data-testid="desktop-action-rail">
+        <div id="features" data-testid="desktop-action-rail">
           <QuickActions />
-        </div>
-        <div data-testid="desktop-rates" className="grid grid-cols-2 gap-3">
-          <SavingsRateTable {...savingsTables.flexible} rates={flexibleSavingsRates} tone="cyan" />
-          <SavingsRateTable {...savingsTables.fixed} rates={fixedSavingsRates} tone="violet" />
         </div>
       </div>
       <aside data-testid="desktop-sidebar" className="col-span-3 flex flex-col gap-3">

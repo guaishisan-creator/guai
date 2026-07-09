@@ -3,7 +3,6 @@
 import { actionLinks } from "@/constants/links";
 import { useLocale } from "@/i18n/locale-provider";
 import type { Locale } from "@/i18n/locales";
-import { SavingsCalculator } from "./savings-calculator";
 
 type SnapshotCopy = { eyebrow: string; title: string; flexible: string; fixed: string; liquid: string; fixedTerm: string; pathTitle: string; flexiblePool: string; fixedPlan: string; maxRate: string; flexibleSteps: readonly [string,string,string]; fixedSteps: readonly [string,string,string]; disclosure: string; cta: string };
 
@@ -40,9 +39,6 @@ export function SavingsSnapshot() {
         <div data-testid="fixed-rate-label" className="flex items-center justify-between gap-3 p-3"><strong className="text-sm text-ink">{c.fixedPlan}</strong><div className="text-right"><span className="block text-[0.62rem] text-muted">{c.maxRate}</span><span className="font-semibold text-warning">11.00%</span></div></div>
       </div>
       <ol data-testid="yield-calculation-flow" className="mt-4 grid gap-3 text-xs leading-5 text-muted">{c.flexibleSteps.map((step,index)=><li key={step} className="flex gap-2"><span className="font-semibold text-cyan">0{index+1}</span><span>{step}<span className="mx-1 text-subtle">/</span>{c.fixedSteps[index]}</span></li>)}</ol>
-      <div className="mt-4">
-        <SavingsCalculator testId="desktop-savings-calculator" />
-      </div>
       <p className="mt-auto rounded-control border border-warning/20 bg-warning/5 p-3 text-xs leading-5 text-muted">{c.disclosure}</p>
     </article>
     <a href={actionLinks.fixedSavings} className="primary-button mt-4 inline-flex self-start rounded-control px-4 py-2 text-sm font-semibold">{c.cta}</a>

@@ -9,10 +9,10 @@ import { useLocale } from "@/i18n/locale-provider";
 export function FeatureCards({ anchorId }: { anchorId?: string }) {
   const { locale } = useLocale();
   const copy = getFinanceCopy(locale).features;
-  const hrefs = [actionLinks.mysteryBox, actionLinks.invite, actionLinks.liquidityMining];
-  const ids = ["mystery-box", "invite-friends", "liquidity-mining"];
+  const hrefs = [actionLinks.mysteryBox, actionLinks.invite];
+  const ids = ["mystery-box", "invite-friends"];
 
-  return <section id={anchorId} data-testid="feature-grid" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  return <section id={anchorId} data-testid="feature-grid" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
     {featureCards.map((card, index) => {
       const item = copy[index];
       const primary = index === 0;
