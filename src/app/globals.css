@@ -82,7 +82,7 @@ button { font: inherit; }
 @keyframes global-volume-land { 0%, 100% { transform: scale(.96) rotate(-2deg); opacity: .62; } 50% { transform: scale(1.05) rotate(3deg); opacity: .84; } }
 @keyframes global-volume-route { 0% { stroke-dashoffset: 420; opacity: 0; } 18%, 68% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 0; } }
 @keyframes global-volume-pulse { 0%, 100% { transform: scale(.84); opacity: .72; } 50% { transform: scale(1.1); opacity: 1; } }
-.savings-command-center { margin-top: -.15rem; }
+.savings-command-center { margin-top: .35rem; }
 .savings-command-frame { position: relative; overflow: hidden; border: 1px solid color-mix(in srgb, theme(colors.electric) 46%, theme(colors.line)); border-radius: 1.15rem; background: linear-gradient(180deg, color-mix(in srgb, theme(colors.surface) 86%, transparent), color-mix(in srgb, theme(colors.canvas) 96%, transparent)); box-shadow: 0 0 0 1px color-mix(in srgb, theme(colors.ink) 5%, transparent) inset, 0 0 2.5rem color-mix(in srgb, theme(colors.electric) 20%, transparent), 0 1.5rem 4rem color-mix(in srgb, black 32%, transparent); padding: 1rem; }
 .savings-command-frame::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, theme(colors.electric) 16%, transparent), transparent), repeating-linear-gradient(0deg, transparent 0 2.2rem, color-mix(in srgb, theme(colors.cyan) 7%, transparent) 2.24rem 2.3rem); opacity: .48; mask-image: linear-gradient(to bottom, black, transparent 82%); }
 .savings-command-frame::after { content: ""; position: absolute; left: 1rem; right: 1rem; top: 3rem; height: 1px; pointer-events: none; background: linear-gradient(90deg, transparent, theme(colors.electric), theme(colors.violet), transparent); box-shadow: 0 0 18px color-mix(in srgb, theme(colors.electric) 42%, transparent); }
@@ -100,7 +100,7 @@ button { font: inherit; }
 .command-action-strip { position: relative; z-index: 1; margin-top: .9rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
 .command-action-strip .panel { min-height: 5.35rem; border-color: color-mix(in srgb, theme(colors.electric) 22%, theme(colors.line)); background: linear-gradient(90deg, color-mix(in srgb, theme(colors.surface) 82%, transparent), color-mix(in srgb, theme(colors.canvas) 76%, transparent)); box-shadow: inset 0 0 0 1px color-mix(in srgb, theme(colors.ink) 4%, transparent); }
 @media (max-width: 1023px) {
-  .savings-command-center { margin-top: -4.35rem; padding-top: .65rem; }
+  .savings-command-center { margin-top: .75rem; padding-top: .65rem; }
   .savings-command-frame { padding: .75rem; border-radius: .95rem; }
   .savings-command-header { align-items: flex-start; flex-direction: column; gap: .22rem; }
   .savings-command-control, .savings-command-rates, .command-action-strip { grid-template-columns: 1fr; }

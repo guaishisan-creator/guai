@@ -10,6 +10,29 @@ type FinanceCopy = {
   advantages: readonly string[]; advantageBody: string;
 };
 
+type SavingsCalculatorCopy = {
+  savingsType: string;
+  flexible: string;
+  fixed: string;
+  deposit: string;
+  fixedTerm: string;
+  days: string;
+  matchedTier: string;
+  matchedRate: string;
+  maturityInterest: string;
+  dailyInterest: string;
+  flexibleExplanation: string;
+  fixedExplanation: (term: number) => string;
+  estimateOnly: string;
+};
+
+type SavingsCommandCopy = {
+  title: string;
+  signal: string;
+  metrics: readonly (readonly [string, string])[];
+  calculator: SavingsCalculatorCopy;
+};
+
 const copy: Record<Locale, FinanceCopy> = {
   en: {
     rates:{amount:"Deposit Amount (USDC)",daily:"Daily Interest",flexible:"Flexible Savings Rates",flexibleNote:"Deposit and withdraw anytime",fixed:"Fixed Savings Rates",fixedNote:"Fixed term"},
@@ -40,6 +63,129 @@ const copy: Record<Locale, FinanceCopy> = {
   th: {
     rates:{amount:"จำนวนเงินฝาก (USDC)",daily:"ดอกเบี้ยรายวัน (Daily Interest)",flexible:"อัตราออมทรัพย์แบบยืดหยุ่น",flexibleNote:"ฝากและถอนได้ทุกเมื่อ",fixed:"อัตราออมทรัพย์แบบกำหนดเวลา",fixedNote:"ระยะเวลาคงที่"}, sections:{advantages:"จุดเด่นของเรา",popular:"เหรียญยอดนิยม",more:"เพิ่มเติม"},
     features:[["กล่องสุ่ม","ได้รับรางวัลทุกครั้ง","รางวัลสูงสุด","8888 USDC","สุ่มเลย"],["เชิญเพื่อน","รับรางวัลพิเศษ","เงินคืนสูงสุด","15%","เชิญเลย"],["ขุดสภาพคล่อง","เพิ่มสภาพคล่อง","รับ","โทเคนแพลตฟอร์ม","เข้าร่วม"]], quick:[["กล่องสุ่ม","ได้รับรางวัลทุกครั้ง"],["เชิญเพื่อน","เงินคืนสูงสุด 15%"],["ขุดสภาพคล่อง","รับโทเคนแพลตฟอร์ม"],["ออมแบบกำหนดเวลา","ดอกเบี้ยรายวันสูงสุด 11%"]], benefits:[["ปลอดภัยและเชื่อถือได้","การตรวจสอบหลายชั้นช่วยปกป้องสินทรัพย์"],["สมาร์ตคอนแทรกต์","โปร่งใสและตรวจสอบบนเชนได้"],["รองรับหลายเชน","รองรับเครือข่ายหลักมากกว่า 12 แห่ง"],["ดำเนินงานทั่วโลก","บริการที่ให้ความสำคัญกับการปฏิบัติตามกฎ"]], coins:["Bitcoin","Ethereum","BNB","XRP","Dogecoin","Polkadot"], coinColumns:["เหรียญ","ราคา","เปลี่ยนแปลง 24H","ปริมาณ 24H","แนวโน้ม"], advantages:["โปรแกรมรางวัล","บริการเงินสด","วิธีสเตก USDC ในวอลเล็ต","วิธีเชิญเพื่อน","Blockchain Savings คืออะไร","หลักการทำงาน","ความปลอดภัย","เส้นทางการพัฒนา","แผนการออม","คำแนะนำสำหรับผู้เข้าร่วม","วิธีเข้าร่วม"], advantageBody:"โปรดตรวจสอบแผน เครือข่ายที่รองรับ การอนุญาตวอลเล็ต ค่าธรรมเนียม ผลตอบแทน และเงื่อนไขการออกก่อนเข้าร่วม ทุกขั้นตอนโปร่งใสและตรวจสอบได้บนเชน หากต้องการความช่วยเหลือโปรดติดต่อฝ่ายสนับสนุน",
+  },
+};
+
+export const savingsCommandCopy: Record<Locale, SavingsCommandCopy> = {
+  en: {
+    title: "SAVINGS COMMAND CENTER",
+    signal: "LIVE PLAN DATA",
+    metrics: [["Matched Tier", "Auto"], ["Daily Interest", "Tier Based"], ["Maturity", "Once"], ["Settlement", "On Rules"]],
+    calculator: {
+      savingsType: "Savings type",
+      flexible: "Flexible savings",
+      fixed: "Fixed savings",
+      deposit: "Deposit amount",
+      fixedTerm: "Fixed term",
+      days: "days",
+      matchedTier: "Matched tier",
+      matchedRate: "Matched rate",
+      maturityInterest: "Maturity interest",
+      dailyInterest: "Daily interest",
+      flexibleExplanation: "Flexible savings estimates interest generated per day from the matched amount tier.",
+      fixedExplanation: (term) => `Fixed savings interest is amount x matched tier rate, paid once at maturity. The ${term}-day term controls the lock duration only.`,
+      estimateOnly: "Estimate only. Actual settlement follows the current plan rules.",
+    },
+  },
+  "zh-CN": {
+    title: "储蓄数据舱",
+    signal: "实时计划数据",
+    metrics: [["匹配档位", "自动匹配"], ["每日利息", "按档位计算"], ["到期收益", "一次结算"], ["结算规则", "按计划执行"]],
+    calculator: {
+      savingsType: "储蓄类型",
+      flexible: "灵活储蓄",
+      fixed: "定期储蓄",
+      deposit: "存入金额",
+      fixedTerm: "锁定期限",
+      days: "天",
+      matchedTier: "匹配档位",
+      matchedRate: "匹配利率",
+      maturityInterest: "到期收益",
+      dailyInterest: "每日利息",
+      flexibleExplanation: "灵活储蓄按匹配金额档位估算每日产生的利息。",
+      fixedExplanation: (term) => `定期储蓄按金额 x 匹配档位利率计算，到期一次性结算。${term} 天期限只决定锁定时间。`,
+      estimateOnly: "仅为估算，实际结算以当前计划规则为准。",
+    },
+  },
+  "zh-TW": {
+    title: "儲蓄數據艙",
+    signal: "即時計畫數據",
+    metrics: [["匹配檔位", "自動匹配"], ["每日利息", "按檔位計算"], ["到期收益", "一次結算"], ["結算規則", "按計畫執行"]],
+    calculator: {
+      savingsType: "儲蓄類型",
+      flexible: "靈活儲蓄",
+      fixed: "定期儲蓄",
+      deposit: "存入金額",
+      fixedTerm: "鎖定期限",
+      days: "天",
+      matchedTier: "匹配檔位",
+      matchedRate: "匹配利率",
+      maturityInterest: "到期收益",
+      dailyInterest: "每日利息",
+      flexibleExplanation: "靈活儲蓄按匹配金額檔位估算每日產生的利息。",
+      fixedExplanation: (term) => `定期儲蓄按金額 x 匹配檔位利率計算，到期一次性結算。${term} 天期限只決定鎖定時間。`,
+      estimateOnly: "僅為估算，實際結算以目前計畫規則為準。",
+    },
+  },
+  ja: {
+    title: "貯蓄コマンドセンター",
+    signal: "ライブプランデータ",
+    metrics: [["適用ティア", "自動判定"], ["日次利息", "ティア基準"], ["満期利息", "一括精算"], ["精算ルール", "プラン準拠"]],
+    calculator: {
+      savingsType: "貯蓄タイプ",
+      flexible: "フレキシブル貯蓄",
+      fixed: "固定貯蓄",
+      deposit: "入金額",
+      fixedTerm: "ロック期間",
+      days: "日",
+      matchedTier: "適用ティア",
+      matchedRate: "適用利率",
+      maturityInterest: "満期利息",
+      dailyInterest: "日次利息",
+      flexibleExplanation: "フレキシブル貯蓄は、入金額に一致するティアから1日あたりの利息を見積もります。",
+      fixedExplanation: (term) => `固定貯蓄は金額 x 適用ティア利率で計算し、満期時に一括精算します。${term}日の期間はロック時間のみを決めます。`,
+      estimateOnly: "これは見積もりです。実際の精算は現在のプランルールに従います。",
+    },
+  },
+  ko: {
+    title: "저축 커맨드 센터",
+    signal: "실시간 플랜 데이터",
+    metrics: [["적용 구간", "자동 매칭"], ["일일 이자", "구간 기준"], ["만기 수익", "일괄 정산"], ["정산 규칙", "플랜 기준"]],
+    calculator: {
+      savingsType: "저축 유형",
+      flexible: "유연 저축",
+      fixed: "정기 저축",
+      deposit: "예치 금액",
+      fixedTerm: "잠금 기간",
+      days: "일",
+      matchedTier: "적용 구간",
+      matchedRate: "적용 금리",
+      maturityInterest: "만기 수익",
+      dailyInterest: "일일 이자",
+      flexibleExplanation: "유연 저축은 예치 금액에 맞는 구간으로 하루 이자를 추정합니다.",
+      fixedExplanation: (term) => `정기 저축은 금액 x 적용 구간 금리로 계산하며 만기 시 한 번 정산합니다. ${term}일 기간은 잠금 시간만 결정합니다.`,
+      estimateOnly: "예상치이며 실제 정산은 현재 플랜 규칙을 따릅니다.",
+    },
+  },
+  th: {
+    title: "ศูนย์ควบคุมการออม",
+    signal: "ข้อมูลแผนแบบสด",
+    metrics: [["ระดับที่ตรงกัน", "จับคู่อัตโนมัติ"], ["ดอกเบี้ยรายวัน", "ตามระดับ"], ["ผลตอบแทนครบกำหนด", "จ่ายครั้งเดียว"], ["กฎการชำระ", "ตามแผน"]],
+    calculator: {
+      savingsType: "ประเภทการออม",
+      flexible: "ออมแบบยืดหยุ่น",
+      fixed: "ออมแบบกำหนดเวลา",
+      deposit: "จำนวนฝาก",
+      fixedTerm: "ระยะเวลาล็อก",
+      days: "วัน",
+      matchedTier: "ระดับที่ตรงกัน",
+      matchedRate: "อัตราที่ตรงกัน",
+      maturityInterest: "ดอกเบี้ยครบกำหนด",
+      dailyInterest: "ดอกเบี้ยรายวัน",
+      flexibleExplanation: "การออมแบบยืดหยุ่นประเมินดอกเบี้ยรายวันจากระดับยอดฝากที่ตรงกัน",
+      fixedExplanation: (term) => `การออมแบบกำหนดเวลาคำนวณจากจำนวนเงิน x อัตราระดับที่ตรงกัน และจ่ายครั้งเดียวเมื่อครบกำหนด ระยะเวลา ${term} วันกำหนดเฉพาะเวลาล็อกเท่านั้น`,
+      estimateOnly: "เป็นเพียงการประมาณการ การชำระจริงเป็นไปตามกฎแผนปัจจุบัน",
+    },
   },
 };
 

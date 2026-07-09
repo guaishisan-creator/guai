@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { fixedSavingsRates, flexibleSavingsRates } from "@/constants/finance";
+import { savingsCommandCopy } from "@/i18n/finance-copy";
+import { useLocale } from "@/i18n/locale-provider";
 import type { SavingsRate } from "@/types/finance";
 
 type Mode = "flexible" | "fixed";
@@ -28,6 +30,8 @@ function formatUsdc(value: number) {
 }
 
 export function SavingsCalculator({ testId }: { testId: string }) {
+  const { locale } = useLocale();
+  const copy = savingsCommandCopy[locale].calculator;
   const [mode, setMode] = useState<Mode>("flexible");
   const [amountText, setAmountText] = useState("10000");
   const [term, setTerm] = useState<(typeof fixedTerms)[number]>(30);
@@ -38,20 +42,20 @@ export function SavingsCalculator({ testId }: { testId: string }) {
   const interest = amount * rate;
 
   return <section data-testid={testId} className="rounded-control border border-cyan/25 bg-canvas/40 p-3">
-    <div className="flex rounded-control border border-line bg-surface-soft p-1" role="group" aria-label="Savings type">
+    <div className="flex rounded-control border border-line bg-surface-soft p-1" role="group" aria-label={copy.savingsType}>
       {(["flexible", "fixed"] as const).map((value) => <button
         key={value}
         type="button"
         onClick={() => setMode(value)}
         className={`flex-1 rounded-control px-3 py-2 text-xs font-semibold ${mode === value ? "bg-brand-gradient text-ink shadow-glow" : "text-muted"}`}
       >
-        {value === "flexible" ? "Flexible savings" : "Fixed savings"}
+        {value === "flexible" ? copy.flexible : copy.fixed}
       </button>)}
     </div>
     <label className="mt-3 block text-xs font-medium text-muted">
-      Deposit amount
+      {copy.deposit}
       <input
-        aria-label="Deposit amount"
+        aria-label={copy.deposit}
         type="number"
         min="0"
         inputMode="decimal"
@@ -61,26 +65,26 @@ export function SavingsCalculator({ testId }: { testId: string }) {
       />
     </label>
     {mode === "fixed" && <label className="mt-3 block text-xs font-medium text-muted">
-      Fixed term
+      {copy.fixedTerm}
       <select
-        aria-label="Fixed term"
+        aria-label={copy.fixedTerm}
         value={term}
         onChange={(event) => setTerm(Number(event.target.value) as (typeof fixedTerms)[number])}
         className="mt-1 w-full rounded-control border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-warning"
       >
-        {fixedTerms.map((days) => <option key={days} value={days}>{days} days</option>)}
+        {fixedTerms.map((days) => <option key={days} value={days}>{days} {copy.days}</option>)}
       </select>
     </label>}
     <div className="mt-3 grid gap-2 rounded-control border border-line bg-surface-soft p-3 text-sm">
-      <div className="flex items-center justify-between gap-3"><span className="text-muted">Matched tier</span><strong>{tier.amount} USDC</strong></div>
-      <div className="flex items-center justify-between gap-3"><span className="text-muted">Matched rate</span><strong className={mode === "fixed" ? "text-warning" : "text-cyan"}>{tier.dailyRate}</strong></div>
-      <div className="flex items-center justify-between gap-3"><span className="text-muted">{mode === "fixed" ? "Maturity interest" : "Daily interest"}</span><strong>{formatUsdc(interest)}</strong></div>
+      <div className="flex items-center justify-between gap-3"><span className="text-muted">{copy.matchedTier}</span><strong>{tier.amount} USDC</strong></div>
+      <div className="flex items-center justify-between gap-3"><span className="text-muted">{copy.matchedRate}</span><strong className={mode === "fixed" ? "text-warning" : "text-cyan"}>{tier.dailyRate}</strong></div>
+      <div className="flex items-center justify-between gap-3"><span className="text-muted">{mode === "fixed" ? copy.maturityInterest : copy.dailyInterest}</span><strong>{formatUsdc(interest)}</strong></div>
     </div>
     <p className="mt-3 text-xs leading-5 text-muted">
       {mode === "fixed"
-        ? `Fixed savings interest is amount x matched tier rate, paid once at maturity. The ${term}-day term controls the lock duration only.`
-        : "Flexible savings estimates interest generated per day from the matched amount tier."}
+        ? copy.fixedExplanation(term)
+        : copy.flexibleExplanation}
     </p>
-    <p className="mt-2 text-xs leading-5 text-muted">Estimate only. Actual settlement follows the current plan rules.</p>
+    <p className="mt-2 text-xs leading-5 text-muted">{copy.estimateOnly}</p>
   </section>;
 }
