@@ -88,19 +88,7 @@ export function GlobalVolumeGlobe({ testId, hero = false }: { testId: string; he
   const copy = globeCopy[locale];
 
   return <section data-testid={testId} className={`global-volume-globe ${hero ? "global-volume-hero" : ""} relative isolate overflow-visible py-3 lg:min-h-[23.5rem]`}>
-    <div className="global-volume-shell relative mx-auto grid min-h-[19rem] max-w-5xl items-center gap-4 lg:min-h-[23rem] lg:grid-cols-[1fr_1.08fr]">
-      <div className="global-volume-copy relative z-20 px-1 lg:pl-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan">{copy.eyebrow}</p>
-        <h1 className="mt-2 max-w-xl text-4xl font-semibold leading-tight lg:text-5xl"><span className="brand-text">{copy.title}</span></h1>
-        <h2 className="mt-3 max-w-md text-2xl font-semibold leading-tight text-ink lg:text-3xl">{copy.headline}</h2>
-        <p className="mt-3 max-w-md text-sm leading-6 text-muted">{copy.description}</p>
-        <div className="mt-5 grid max-w-lg grid-cols-2 gap-2 text-xs font-semibold">
-          <span className="rounded-full border border-cyan/30 bg-cyan/10 px-3 py-2 text-cyan">{copy.pills[0]}</span>
-          <span className="rounded-full border border-warning/30 bg-warning/10 px-3 py-2 text-warning">{copy.pills[1]}</span>
-          <span className="rounded-full border border-electric/30 bg-electric/10 px-3 py-2 text-electric">{copy.pills[2]}</span>
-          <span className="rounded-full border border-violet/30 bg-violet/10 px-3 py-2 text-violet">{copy.pills[3]}</span>
-        </div>
-      </div>
+    <div className="global-volume-shell relative mx-auto grid min-h-[19rem] max-w-5xl items-center gap-4 lg:min-h-[23rem]">
       <div className="global-volume-stage relative z-10 mx-auto aspect-square w-full max-w-[25rem] lg:max-w-[29rem]" aria-hidden="true">
         <div className="global-volume-ribbon">
           <div className="global-volume-ribbon-track">

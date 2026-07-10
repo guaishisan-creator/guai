@@ -4,16 +4,15 @@ import { useState, type CSSProperties } from "react";
 import { actionLinks } from "@/constants/links";
 
 const spotlightItems = [
-  { key: "flexible", title: "Flexible Access", eyebrow: "DAILY FLOW", detail: "Enter the flexible pool and keep assets available for daily settlement.", href: actionLinks.fixedSavings, action: "Enter Pool" },
-  { key: "fixed", title: "Fixed Maturity", eyebrow: "LOCKED PATH", detail: "Choose a fixed plan and view the matched maturity yield route.", href: actionLinks.fixedSavings, action: "View Plans" },
+  { key: "fixed", title: "Smart Contract", eyebrow: "CONTRACT PATH", detail: "Choose a smart contract plan and view the matched maturity yield route.", href: actionLinks.fixedSavings, action: "View Plans" },
   { key: "mystery", title: "Mystery Box", eyebrow: "REWARD", detail: "Reward events stay visible here while the activity page is prepared.", action: "Preparing" },
   { key: "invite", title: "Invite Friends", eyebrow: "MEMBER", detail: "Non-high-net-worth members cannot share dividend vouchers.", action: "Unavailable" },
-  { key: "contract", title: "Smart Contract", eyebrow: "PROOF", detail: "Savings routes are presented with contract-driven proof signals.", href: "/docs", action: "Read Proof" },
+  { key: "contract", title: "Contract Proof", eyebrow: "PROOF", detail: "Savings routes are presented with contract-driven proof signals.", href: "/docs", action: "Read Proof" },
   { key: "chain", title: "Multi-chain Proof", eyebrow: "NETWORK", detail: "EVM and TRON paths are organized as separate on-chain settlement lanes.", href: "/docs", action: "Explore" },
 ] as const;
 
 export function MobileSpotlightHub() {
-  const [activeKey, setActiveKey] = useState<(typeof spotlightItems)[number]["key"]>("flexible");
+  const [activeKey, setActiveKey] = useState<(typeof spotlightItems)[number]["key"]>("fixed");
   const active = spotlightItems.find((item) => item.key === activeKey) ?? spotlightItems[0];
 
   return (

@@ -35,18 +35,18 @@ type SavingsCommandCopy = {
 
 const copy: Record<Locale, FinanceCopy> = {
   en: {
-    rates:{amount:"Deposit Amount (USDC)",daily:"Daily Interest",flexible:"Flexible Savings Rates",flexibleNote:"Deposit and withdraw anytime",fixed:"Fixed Savings Rates",fixedNote:"Fixed term"},
+    rates:{amount:"Deposit Amount (USDC)",daily:"Daily Interest",flexible:"Flexible Savings Rates",flexibleNote:"Deposit and withdraw anytime",fixed:"Smart Contract Rates",fixedNote:"Maturity settlement"},
     sections:{advantages:"Our Advantages",popular:"Popular Coins",more:"More"},
     features:[["Mystery Box","Every entry wins","Top reward","8888 USDC","Draw Now"],["Invite Friends","Premium rewards","Maximum rebate","15%","Invite Now"],["Flexible Savings","Deposit anytime","Earn","Tiered yield","View Plans"]],
-    quick:[["Mystery Box","Every entry wins"],["Invite Friends","Up to 15% rebate"],["Flexible Savings","Earn platform tokens"],["Fixed Savings","Daily interest up to 11%"]],
+    quick:[["Mystery Box","Every entry wins"],["Invite Friends","Up to 15% rebate"],["Flexible Savings","Earn platform tokens"],["Smart Contract","Daily interest up to 11%"]],
     benefits:[["Secure and Reliable","Multi-layer audits protect assets"],["Smart Contracts","Transparent and verifiable on-chain"],["Multi-chain Support","Supports 12+ major networks"],["Global Operations","Compliance-oriented global service"]],
     coins:["Bitcoin","Ethereum","BNB","XRP","Dogecoin","Polkadot"], coinColumns:["Coin","Price","24H Change","24H Volume","Trend"],
     advantages:["Rewards Program","Blockchain Savings Cash Service","How to stake USDC in your wallet","How to invite friends","What is Blockchain Savings","How Blockchain Savings works","Is Blockchain Savings secure","Our development journey","Blockchain Savings plans","Participant guide","How to join"],
     advantageBody:"Review the applicable plan, supported network, wallet authorization, fees, returns, and exit rules before participating. All actions are transparent and verifiable on-chain; contact support if you need assistance.",
   },
   "zh-CN": {
-    rates:{amount:"存款金额（USDC）",daily:"每日利率（Daily Interest）",flexible:"灵活储蓄利率表",flexibleNote:"随存随取",fixed:"定期储蓄利率表",fixedNote:"固定期限"}, sections:{advantages:"我们的优势",popular:"热门币种",more:"更多"},
-    features:[["盲盒抽奖","100%中奖","最高奖励","8888 USDC","去抽奖"],["邀请好友","享高额返佣","最高返佣","15%","立即邀请"],["灵活储蓄","随存随取","赚取","档位收益","查看计划"]], quick:[["盲盒抽奖","100%中奖"],["邀请好友","最高返佣15%"],["灵活储蓄","赚取档位收益"],["定期储蓄","每日利率最高11%"]], benefits:[["安全可靠","多重审计，保障资产安全"],["智能合约","公开透明，链上可验证"],["多链支持","支持12+主流公链"],["全球合规","合规运营，服务全球"]], coins:["比特币","以太坊","币安币","瑞波币","狗狗币","波卡币"], coinColumns:["币种","价格","24H涨跌","24H成交额","趋势"], advantages:["福利活动","Blockchain Savings 现金服务","如何在钱包中质押 USDC","如何邀请朋友加入","什么是 Blockchain Savings","Blockchain Savings 的工作原理","Blockchain Savings 安全可靠吗","Blockchain Savings 的发展历程","Blockchain Savings 储蓄计划","参与者须知","如何加入"], advantageBody:"参与前请核对计划、支持网络、钱包授权、费用、收益和退出规则。所有操作均公开透明并可在链上验证，如需帮助请联系在线支持。",
+    rates:{amount:"存款金额（USDC）",daily:"每日利率（Daily Interest）",flexible:"灵活储蓄利率表",flexibleNote:"随存随取",fixed:"智能合约利率表",fixedNote:"到期结算"}, sections:{advantages:"我们的优势",popular:"热门币种",more:"更多"},
+    features:[["盲盒抽奖","100%中奖","最高奖励","8888 USDC","去抽奖"],["邀请好友","享高额返佣","最高返佣","15%","立即邀请"],["灵活储蓄","随存随取","赚取","档位收益","查看计划"]], quick:[["盲盒抽奖","100%中奖"],["邀请好友","最高返佣15%"],["灵活储蓄","赚取档位收益"],["智能合约","每日利率最高11%"]], benefits:[["安全可靠","多重审计，保障资产安全"],["智能合约","公开透明，链上可验证"],["多链支持","支持12+主流公链"],["全球合规","合规运营，服务全球"]], coins:["比特币","以太坊","币安币","瑞波币","狗狗币","波卡币"], coinColumns:["币种","价格","24H涨跌","24H成交额","趋势"], advantages:["福利活动","Blockchain Savings 现金服务","如何在钱包中质押 USDC","如何邀请朋友加入","什么是 Blockchain Savings","Blockchain Savings 的工作原理","Blockchain Savings 安全可靠吗","Blockchain Savings 的发展历程","Blockchain Savings 储蓄计划","参与者须知","如何加入"], advantageBody:"参与前请核对计划、支持网络、钱包授权、费用、收益和退出规则。所有操作均公开透明并可在链上验证，如需帮助请联系在线支持。",
   },
   "zh-TW": {
     rates:{amount:"存款金額（USDC）",daily:"每日利率（Daily Interest）",flexible:"靈活儲蓄利率表",flexibleNote:"隨存隨取",fixed:"定期儲蓄利率表",fixedNote:"固定期限"}, sections:{advantages:"我們的優勢",popular:"熱門幣種",more:"更多"},
@@ -74,7 +74,7 @@ export const savingsCommandCopy: Record<Locale, SavingsCommandCopy> = {
     calculator: {
       savingsType: "Savings type",
       flexible: "Flexible savings",
-      fixed: "Fixed savings",
+      fixed: "Smart Contract",
       deposit: "Deposit amount",
       fixedTerm: "Fixed term",
       days: "days",
@@ -94,7 +94,7 @@ export const savingsCommandCopy: Record<Locale, SavingsCommandCopy> = {
     calculator: {
       savingsType: "储蓄类型",
       flexible: "灵活储蓄",
-      fixed: "定期储蓄",
+      fixed: "智能合约",
       deposit: "存入金额",
       fixedTerm: "锁定期限",
       days: "天",
@@ -103,7 +103,7 @@ export const savingsCommandCopy: Record<Locale, SavingsCommandCopy> = {
       maturityInterest: "到期收益",
       dailyInterest: "每日利息",
       flexibleExplanation: "灵活储蓄按匹配金额档位估算每日产生的利息。",
-      fixedExplanation: (term) => `定期储蓄按金额 x 匹配档位利率计算，到期一次性结算。${term} 天期限只决定锁定时间。`,
+      fixedExplanation: (term) => `智能合约按金额 x 匹配档位利率计算，到期一次性结算。${term} 天期限只决定锁定时间。`,
       estimateOnly: "仅为估算，实际结算以当前计划规则为准。",
     },
   },
@@ -193,7 +193,7 @@ export const getFinanceCopy = (locale: Locale) => copy[locale];
 
 export const chromeCopy: Record<Locale,{promos:readonly (readonly [string,string])[];ticker:readonly string[]}>={
   en:{promos:[["A new way to manage digital assets","Transparent multi-chain savings data"],["Earn USDC with flexible savings","Deposit or withdraw anytime with clear returns"],["Automated on-chain plans","Contract-driven, multi-signature asset management"],["Savings Plan Reward · 3 million ETH","Transparent · Secure · On-chain"]],ticker:["Cryptocurrencies","Exchanges","Market Cap","24H Volume","Market Dominance","On-chain transparency","Multi-signature asset management","Real-time on-chain data","Multi-chain support","Smart contract automation"]},
-  "zh-CN":{promos:[["数字资产新方式","多链储蓄与链上透明数据"],["灵活储蓄赚取 USDC","随存随取，收益清晰可见"],["自动执行链上计划","合约驱动，多重签名资产管理"],["储蓄计划奖励 · 3 million ETH","透明 · 安全 · 链上"]],ticker:["加密货币","交易所","市值","24小时量","市场主导","链上公开透明","多重签名资产管理","实时链上数据","多链支持","智能合约自动执行"]},
+  "zh-CN":{promos:[["数字资产新方式","多链储蓄与链上透明数据"],["智能合约赚取 USDC","到期一次性结算，规则链上透明"],["自动执行链上计划","合约驱动，多重签名资产管理"],["储蓄计划奖励 · 3 million ETH","透明 · 安全 · 链上"]],ticker:["加密货币","交易所","市值","24小时量","市场主导","链上公开透明","多重签名资产管理","实时链上数据","多链支持","智能合约自动执行"]},
   "zh-TW":{promos:[["數位資產新方式","多鏈儲蓄與鏈上透明數據"],["靈活儲蓄賺取 USDC","隨存隨取，收益清晰可見"],["自動執行鏈上計畫","合約驅動，多重簽名資產管理"],["儲蓄計畫獎勵 · 3 million ETH","透明 · 安全 · 鏈上"]],ticker:["加密貨幣","交易所","市值","24小時量","市場主導","鏈上公開透明","多重簽名資產管理","即時鏈上數據","多鏈支援","智能合約自動執行"]},
   ja:{promos:[["デジタル資産管理の新しい形","透明なマルチチェーン貯蓄データ"],["フレキシブル貯蓄で USDC を獲得","いつでも入出金でき、収益も明確"],["オンチェーンプランを自動実行","コントラクト駆動のマルチシグ資産管理"],["貯蓄プラン報酬 · 3 million ETH","透明 · 安全 · オンチェーン"]],ticker:["暗号資産","取引所","時価総額","24時間出来高","市場シェア","オンチェーン透明性","マルチシグ資産管理","リアルタイムオンチェーンデータ","マルチチェーン対応","スマートコントラクト自動化"]},
   ko:{promos:[["디지털 자산 관리의 새로운 방식","투명한 멀티체인 적립 데이터"],["자유 적립으로 USDC 획득","언제든 입출금하고 수익을 명확히 확인"],["온체인 플랜 자동 실행","계약 기반 다중 서명 자산 관리"],["적립 플랜 보상 · 3 million ETH","투명 · 안전 · 온체인"]],ticker:["암호화폐","거래소","시가총액","24시간 거래량","시장 점유율","온체인 투명성","다중 서명 자산 관리","실시간 온체인 데이터","멀티체인 지원","스마트 계약 자동화"]},

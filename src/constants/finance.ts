@@ -55,7 +55,7 @@ export const mobileDrawerItems: MobileDrawerItem[] = [
 
 export const promoBanners: PromoBanner[] = [
   { eyebrow: "BLOCKCHAIN SAVINGS", title: "数字资产新方式", description: "多链储蓄与链上透明数据", icon: "ethereum", tone: "purple" },
-  { eyebrow: "LIQUIDITY SAVINGS", title: "灵活储蓄赚取 USDC", description: "随存随取，收益清晰可见", icon: "usdc", tone: "cyan" },
+  { eyebrow: "USDC CONTRACT", title: "智能合约赚取 USDC", description: "到期一次性结算，规则链上透明", icon: "usdc", tone: "cyan" },
   { eyebrow: "SMART CONTRACT", title: "自动执行链上计划", description: "合约驱动，多重签名资产管理", icon: "contract", tone: "orange" },
   { eyebrow: "SAVINGS PLAN REWARD", title: "Savings Plan Reward · 3 million ETH", description: "Transparent · Secure · On-chain", icon: "vault", tone: "purple", image: "/images/blockchain-savings-reward.png" },
 ];
@@ -76,7 +76,7 @@ export const quickActions: QuickAction[] = ([
   { title: "盲盒抽奖", description: "100%中奖", icon: "gift", tone: "orange" },
   { title: "邀请好友", description: "最高返佣 15%", icon: "users", tone: "blue" },
   { title: "灵活储蓄", description: "随存随取", icon: "coins", tone: "green" },
-  { title: "定期储蓄", description: "最高年化 11%", icon: "shield", tone: "purple" },
+  { title: "智能合约", description: "最高利率 11%", icon: "shield", tone: "purple" },
 ] as QuickAction[]).filter((item) => item.title !== "灵活储蓄");
 
 export const featureCards: FeatureCard[] = ([
@@ -98,7 +98,7 @@ export const coins: Coin[] = [
 
 export const tableColumns = ["存款金额（USDC）", "每日利率（Daily Interest）"] as const;
 export const savingsTables = {
-  fixed: { title: "定期储蓄利率表", note: "固定期限" },
+  fixed: { title: "智能合约利率表", note: "到期结算" },
   flexible: { title: "灵活储蓄利率表", note: "随存随取" },
 } as const;
 export const fixedSavingsRates: SavingsRate[] = [

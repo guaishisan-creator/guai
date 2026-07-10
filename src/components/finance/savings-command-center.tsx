@@ -4,7 +4,7 @@ import { QuickActions } from "@/components/finance/quick-actions";
 import { SavingsCalculator } from "@/components/finance/savings-calculator";
 import { SavingsPoolTeasers } from "@/components/finance/savings-pool-teasers";
 import { SavingsRateTable } from "@/components/finance/savings-rate-table";
-import { fixedSavingsRates, flexibleSavingsRates, savingsTables } from "@/constants/finance";
+import { fixedSavingsRates, savingsTables } from "@/constants/finance";
 import { savingsCommandCopy } from "@/i18n/finance-copy";
 import { useLocale } from "@/i18n/locale-provider";
 
@@ -25,7 +25,6 @@ export function SavingsCommandCenter() {
         </div>
       </div>
       <div className="savings-command-rates">
-        <SavingsRateTable {...savingsTables.flexible} rates={flexibleSavingsRates} tone="cyan" />
         <SavingsRateTable {...savingsTables.fixed} rates={fixedSavingsRates} tone="violet" />
       </div>
       <SavingsPoolTeasers />

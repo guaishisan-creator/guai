@@ -7,12 +7,12 @@ import type { SavingsRate } from "@/types/finance";
 import { GlowIcon } from "@/components/ui/glow-icon";
 
 const depositCopy = {
-  en: { flexible: "Enter Flexible Pool", fixed: "Enter Fixed Pool" },
-  "zh-CN": { flexible: "进入灵活存取池", fixed: "进入定期存取池" },
-  "zh-TW": { flexible: "進入靈活存取池", fixed: "進入定期存取池" },
-  ja: { flexible: "フレキシブルプールへ", fixed: "定期プールへ" },
-  ko: { flexible: "유동 예치 풀로", fixed: "정기 예치 풀로" },
-  th: { flexible: "เข้าสู่พูลยืดหยุ่น", fixed: "เข้าสู่พูลประจำ" },
+  en: { flexible: "Enter Smart Contract", fixed: "Enter Smart Contract" },
+  "zh-CN": { flexible: "进入智能合约", fixed: "进入智能合约" },
+  "zh-TW": { flexible: "進入智能合約", fixed: "進入智能合約" },
+  ja: { flexible: "スマートコントラクトへ", fixed: "スマートコントラクトへ" },
+  ko: { flexible: "스마트 계약으로", fixed: "스마트 계약으로" },
+  th: { flexible: "เข้าสู่สัญญาอัจฉริยะ", fixed: "เข้าสู่สัญญาอัจฉริยะ" },
 } as const;
 
 export function SavingsRateTable({

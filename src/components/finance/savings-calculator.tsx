@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { fixedSavingsRates, flexibleSavingsRates } from "@/constants/finance";
+import { fixedSavingsRates } from "@/constants/finance";
 import { savingsCommandCopy } from "@/i18n/finance-copy";
 import { useLocale } from "@/i18n/locale-provider";
 import type { SavingsRate } from "@/types/finance";
-
-type Mode = "flexible" | "fixed";
 
 const fixedTerms = [30, 90, 180, 365] as const;
 
@@ -32,25 +30,21 @@ function formatUsdc(value: number) {
 export function SavingsCalculator({ testId }: { testId: string }) {
   const { locale } = useLocale();
   const copy = savingsCommandCopy[locale].calculator;
-  const [mode, setMode] = useState<Mode>("flexible");
   const [amountText, setAmountText] = useState("10000");
   const [term, setTerm] = useState<(typeof fixedTerms)[number]>(30);
   const amount = Math.max(0, Number(amountText) || 0);
-  const rates = mode === "fixed" ? fixedSavingsRates : flexibleSavingsRates;
-  const tier = useMemo(() => findTier(amount, rates), [amount, rates]);
+  const tier = useMemo(() => findTier(amount, fixedSavingsRates), [amount]);
   const rate = parseRate(tier.dailyRate);
   const interest = amount * rate;
 
   return <section data-testid={testId} className="rounded-control border border-cyan/25 bg-canvas/40 p-3">
     <div className="flex rounded-control border border-line bg-surface-soft p-1" role="group" aria-label={copy.savingsType}>
-      {(["flexible", "fixed"] as const).map((value) => <button
-        key={value}
+      <button
         type="button"
-        onClick={() => setMode(value)}
-        className={`flex-1 rounded-control px-3 py-2 text-xs font-semibold ${mode === value ? "bg-brand-gradient text-ink shadow-glow" : "text-muted"}`}
+        className="flex-1 rounded-control bg-brand-gradient px-3 py-2 text-xs font-semibold text-ink shadow-glow"
       >
-        {value === "flexible" ? copy.flexible : copy.fixed}
-      </button>)}
+        {copy.fixed}
+      </button>
     </div>
     <label className="mt-3 block text-xs font-medium text-muted">
       {copy.deposit}
@@ -64,7 +58,7 @@ export function SavingsCalculator({ testId }: { testId: string }) {
         className="mt-1 w-full rounded-control border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-cyan"
       />
     </label>
-    {mode === "fixed" && <label className="mt-3 block text-xs font-medium text-muted">
+    <label className="mt-3 block text-xs font-medium text-muted">
       {copy.fixedTerm}
       <select
         aria-label={copy.fixedTerm}
@@ -74,17 +68,13 @@ export function SavingsCalculator({ testId }: { testId: string }) {
       >
         {fixedTerms.map((days) => <option key={days} value={days}>{days} {copy.days}</option>)}
       </select>
-    </label>}
+    </label>
     <div className="mt-3 grid gap-2 rounded-control border border-line bg-surface-soft p-3 text-sm">
       <div className="flex items-center justify-between gap-3"><span className="text-muted">{copy.matchedTier}</span><strong>{tier.amount} USDC</strong></div>
-      <div className="flex items-center justify-between gap-3"><span className="text-muted">{copy.matchedRate}</span><strong className={mode === "fixed" ? "text-warning" : "text-cyan"}>{tier.dailyRate}</strong></div>
-      <div className="flex items-center justify-between gap-3"><span className="text-muted">{mode === "fixed" ? copy.maturityInterest : copy.dailyInterest}</span><strong>{formatUsdc(interest)}</strong></div>
+      <div className="flex items-center justify-between gap-3"><span className="text-muted">{copy.matchedRate}</span><strong className="text-warning">{tier.dailyRate}</strong></div>
+      <div className="flex items-center justify-between gap-3"><span className="text-muted">{copy.maturityInterest}</span><strong>{formatUsdc(interest)}</strong></div>
     </div>
-    <p className="mt-3 text-xs leading-5 text-muted">
-      {mode === "fixed"
-        ? copy.fixedExplanation(term)
-        : copy.flexibleExplanation}
-    </p>
+    <p className="mt-3 text-xs leading-5 text-muted">{copy.fixedExplanation(term)}</p>
     <p className="mt-2 text-xs leading-5 text-muted">{copy.estimateOnly}</p>
   </section>;
 }

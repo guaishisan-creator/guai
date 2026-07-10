@@ -4,16 +4,9 @@ import { actionLinks } from "@/constants/links";
 
 const pools = [
   {
-    key: "flexible",
-    title: "Flexible Access Pool",
-    eyebrow: "LIVE ACCESS",
-    metric: "Daily Flow",
-    glow: "cyan",
-  },
-  {
     key: "fixed",
-    title: "Fixed Maturity Pool",
-    eyebrow: "LOCKED PATH",
+    title: "Smart Contract Pool",
+    eyebrow: "CONTRACT PATH",
     metric: "Maturity Yield",
     glow: "violet",
   },
