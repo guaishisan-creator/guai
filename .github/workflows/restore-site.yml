@@ -1,0 +1,39 @@
+name: 一键恢复
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hb-production-maintenance-toggle
+  cancel-in-progress: false
+
+jobs:
+  toggle:
+    name: 双站恢复正常上线
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main site
+        uses: actions/checkout@v4
+        with:
+          repository: hei905595-byte/web3-finance-dashboard
+          ref: main
+          path: main-site
+          token: ${{ secrets.HB_MAINTENANCE_PAT }}
+          fetch-depth: 0
+
+      - name: Checkout admin site
+        uses: actions/checkout@v4
+        with:
+          repository: hei905595-byte/wb3-chain-finance-admin
+          ref: main
+          path: admin-site
+          token: ${{ secrets.HB_MAINTENANCE_PAT }}
+          fetch-depth: 0
+
+      - name: Restore sites and verify production
+        run: node main-site/scripts/maintenance-remote.mjs --mode restore --main-dir main-site --admin-dir admin-site
+

@@ -97,4 +97,3 @@ Before release:
 ## Rollback
 
 Before the first live run, preserve the two starting remote heads. If the workflow implementation itself must be removed, revert its ordinary repository commit. If a partial cross-repository update occurs, inspect both remote heads and use a new normal revert commit for the already-updated repository; never force push.
-

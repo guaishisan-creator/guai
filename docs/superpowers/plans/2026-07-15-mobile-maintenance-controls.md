@@ -23,7 +23,7 @@
 ### Task 1: Portable state and safety core
 
 **Files:**
-- Create: `scripts/maintenance-remote.test.mjs`
+- Create: `scripts/maintenance-remote.node-test.mjs`
 - Create: `scripts/maintenance-remote.mjs`
 - Create: `.github/maintenance-assets/vercel.json`
 - Create: `.github/maintenance-assets/maintenance.html`
@@ -36,11 +36,11 @@
 
 - [ ] **Step 1: Write failing unit tests**
 
-Create `scripts/maintenance-remote.test.mjs` with `node:test` cases covering online, maintenance, partial-template unknown state, mixed states, idempotent no-op, exact changed-path scope, and maintenance marker discovery through an injected Git runner.
+Create `scripts/maintenance-remote.node-test.mjs` with `node:test` cases covering online, maintenance, partial-template unknown state, mixed states, idempotent no-op, exact changed-path scope, and maintenance marker discovery through an injected Git runner. The `.node-test.mjs` suffix prevents Vitest from collecting Node's native test files.
 
 - [ ] **Step 2: Verify RED**
 
-Run: `node --test scripts/maintenance-remote.test.mjs`
+Run: `node --test scripts/maintenance-remote.node-test.mjs`
 
 Expected: FAIL with `ERR_MODULE_NOT_FOUND` for `scripts/maintenance-remote.mjs`.
 
@@ -54,7 +54,7 @@ Copy the approved local templates from `C:\Users\Administrator\Desktop\HB\mainte
 
 - [ ] **Step 5: Verify GREEN**
 
-Run: `node --test scripts/maintenance-remote.test.mjs`
+Run: `node --test scripts/maintenance-remote.node-test.mjs`
 
 Expected: all Task 1 tests PASS with zero failures.
 
@@ -63,14 +63,14 @@ Expected: all Task 1 tests PASS with zero failures.
 Run:
 
 ```powershell
-git add scripts/maintenance-remote.mjs scripts/maintenance-remote.test.mjs .github/maintenance-assets
+git add scripts/maintenance-remote.mjs scripts/maintenance-remote.node-test.mjs .github/maintenance-assets
 git commit -m "feat: add portable maintenance controller core"
 ```
 
 ### Task 2: Safe repository mutation and deployment verification
 
 **Files:**
-- Modify: `scripts/maintenance-remote.test.mjs`
+- Modify: `scripts/maintenance-remote.node-test.mjs`
 - Modify: `scripts/maintenance-remote.mjs`
 
 **Interfaces:**
@@ -83,7 +83,7 @@ Use temporary local Git repositories with bare remotes to prove: enable prepares
 
 - [ ] **Step 2: Verify RED**
 
-Run: `node --test scripts/maintenance-remote.test.mjs`
+Run: `node --test scripts/maintenance-remote.node-test.mjs`
 
 Expected: new CLI/integration cases FAIL because orchestration is not implemented.
 
@@ -100,7 +100,7 @@ Use built-in `fetch` with a 20-second request timeout. Poll every ten seconds fo
 Run:
 
 ```powershell
-node --test scripts/maintenance-remote.test.mjs
+node --test scripts/maintenance-remote.node-test.mjs
 node scripts/maintenance-remote.mjs --mode status --main-dir C:\Users\Administrator\Desktop\HB\_maintenance-worktrees\web3-finance-dashboard --admin-dir C:\Users\Administrator\Desktop\HB\_maintenance-worktrees\wb3-chain-finance-admin --preflight-only
 ```
 
@@ -111,7 +111,7 @@ Expected: all tests PASS; preflight reports two recognized matching states and s
 Run:
 
 ```powershell
-git add scripts/maintenance-remote.mjs scripts/maintenance-remote.test.mjs
+git add scripts/maintenance-remote.mjs scripts/maintenance-remote.node-test.mjs
 git commit -m "feat: automate safe dual-site maintenance switching"
 ```
 
@@ -120,7 +120,7 @@ git commit -m "feat: automate safe dual-site maintenance switching"
 **Files:**
 - Create: `.github/workflows/enable-maintenance.yml`
 - Create: `.github/workflows/restore-site.yml`
-- Create: `scripts/maintenance-workflows.test.mjs`
+- Create: `scripts/maintenance-workflows.node-test.mjs`
 - Modify: `WORK_RECORD.md`
 
 **Interfaces:**
@@ -130,11 +130,11 @@ git commit -m "feat: automate safe dual-site maintenance switching"
 
 - [ ] **Step 1: Write failing workflow contract tests**
 
-Create `scripts/maintenance-workflows.test.mjs` to assert both workflow files exist, use `workflow_dispatch`, share concurrency group `hb-production-maintenance-toggle`, set `permissions: contents: read`, reference only `secrets.HB_MAINTENANCE_PAT`, check out the two fixed private repositories, and invoke the expected controller mode.
+Create `scripts/maintenance-workflows.node-test.mjs` to assert both workflow files exist, use `workflow_dispatch`, share concurrency group `hb-production-maintenance-toggle`, set `permissions: contents: read`, reference only `secrets.HB_MAINTENANCE_PAT`, check out the two fixed private repositories, and invoke the expected controller mode.
 
 - [ ] **Step 2: Verify RED**
 
-Run: `node --test scripts/maintenance-workflows.test.mjs`
+Run: `node --test scripts/maintenance-workflows.node-test.mjs`
 
 Expected: FAIL because both workflow files are absent.
 
@@ -144,7 +144,7 @@ Each workflow uses Ubuntu, a 15-minute timeout, `actions/checkout@v4` for both f
 
 - [ ] **Step 4: Verify GREEN**
 
-Run: `node --test scripts/maintenance-workflows.test.mjs`
+Run: `node --test scripts/maintenance-workflows.node-test.mjs`
 
 Expected: all workflow contract tests PASS.
 
@@ -153,7 +153,7 @@ Expected: all workflow contract tests PASS.
 Run:
 
 ```powershell
-node --test scripts/maintenance-remote.test.mjs scripts/maintenance-workflows.test.mjs
+node --test scripts/maintenance-remote.node-test.mjs scripts/maintenance-workflows.node-test.mjs
 npm.cmd test -- --run
 npm.cmd run lint
 npm.cmd run build
@@ -172,7 +172,7 @@ Update `WORK_RECORD.md` with commit IDs, RED/GREEN evidence, full verification c
 Run:
 
 ```powershell
-git add .github/workflows scripts/maintenance-workflows.test.mjs WORK_RECORD.md docs/superpowers/plans/2026-07-15-mobile-maintenance-controls.md
+git add .github/workflows scripts/maintenance-workflows.node-test.mjs WORK_RECORD.md docs/superpowers/plans/2026-07-15-mobile-maintenance-controls.md
 git commit -m "feat: add mobile maintenance actions"
 ```
 
@@ -208,4 +208,3 @@ From a mobile-compatible GitHub Actions page, run the approved workflow. Confirm
 - [ ] **Step 6: Record final evidence**
 
 Append the workflow run URL, final remote commit IDs, final production state, verification result, and any degraded item to `WORK_RECORD.md`; commit the record without secrets.
-
