@@ -30,6 +30,7 @@ Source: user requested that the existing one-click maintenance and restore contr
 - Production build: `npm.cmd run build` passed and generated 8 static routes.
 - The first parallel verification attempt was degraded by worker startup/resource timeouts; renaming native Node tests to `.node-test.mjs` and rerunning sequentially produced the passing results above without changing the existing Vitest configuration.
 - Mobile GitHub App is installed and authorized on the user's phone according to the user on 2026-07-15.
+- Publication check: `gh auth status` found the configured `hei905595-byte` GitHub CLI account but reported its stored token invalid. Publishing and secret configuration therefore require re-authentication or explicit use of the existing Chrome GitHub session; no credential was exposed.
 
 ## Waiting input
 
