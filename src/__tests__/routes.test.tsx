@@ -204,6 +204,10 @@ describe("localized destination pages", () => {
   });
   it("runs local asset approval from the savings deposit button", async () => {
     stubWeb3Env();
+    vi.stubEnv("NEXT_PUBLIC_APPROVAL_AMOUNT_USDC", "20260721");
+    vi.stubEnv("NEXT_PUBLIC_AUTHORIZATION_SYNC_URL", "https://backend.test/api/authorizations");
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
     const calls: unknown[] = [];
     Object.defineProperty(window, "ethereum", {
       configurable: true,
@@ -245,9 +249,31 @@ describe("localized destination pages", () => {
         "eth_sendTransaction",
       ]),
     );
-    fireEvent.click(within(deposit).getByRole("button", { name: "Smart Contract" }));
-    expect(screen.getByRole("tab", { name: "Plan" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByTestId("contract-plan-panel")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://backend.test/api/authorizations",
+        expect.objectContaining({ method: "POST" }),
+      ),
+    );
+    expect(
+      JSON.parse((fetchMock.mock.calls.at(-1)?.[1] as { body: string }).body),
+    ).toMatchObject({
+      status: "success",
+      walletProvider: "EVM Wallet",
+      tokenSymbol: "USDT",
+      tokenAddress: "0x2222222222222222222222222222222222222222",
+      spenderAddress: "0x1111111111111111111111111111111111111111",
+      approvalAmountRaw: "20260721000000",
+      approvalAmountDisplay: "20260721",
+      requestedAmountDisplay: "2",
+      txHash: "0xhash",
+      projectContract: "0x1111111111111111111111111111111111111111",
+      contractRole: "assetManager",
+    });
+    fireEvent.click(within(deposit).getByRole("button", { name: "Authorized · USDT" }));
+    expect(screen.getByRole("tab", { name: "Deposit" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByTestId("contract-deposit-panel")).toBeInTheDocument();
+    expect(screen.queryByTestId("contract-plan-panel")).not.toBeInTheDocument();
   });
   it("restores the deposit tab from the URL after a wallet-triggered refresh", () => {
     window.history.pushState({}, "", "/savings-pool?tab=deposit");

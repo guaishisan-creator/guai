@@ -287,7 +287,7 @@ describe("finance home", () => {
     expect(rates).toHaveLength(4);
     expect(rateLinks).toHaveLength(2);
     expect(
-      rateLinks.every((link) => link.getAttribute("href") === "/savings-pool")
+      rateLinks.every((link) => link.getAttribute("href") === "/savings-pool?tab=plan")
     ).toBe(true);
   });
   it("moves the six-beam spotlight to the bottom of H5 while removing mobile benefit cards", () => {
@@ -323,7 +323,7 @@ describe("finance home", () => {
     ).not.toBeInTheDocument();
     expect(
       within(spotlight).getByRole("link", { name: /View Plans/ })
-    ).toHaveAttribute("href", "/savings-pool");
+    ).toHaveAttribute("href", "/savings-pool?tab=plan");
     fireEvent.click(
       within(spotlight).getByRole("button", { name: /Mystery Box/ })
     );
@@ -358,7 +358,7 @@ describe("finance home", () => {
     fireEvent.click(smartContractBeam);
     expect(
       within(spotlight).getByRole("link", { name: /查看计划/ })
-    ).toHaveAttribute("href", "/savings-pool");
+    ).toHaveAttribute("href", "/savings-pool?tab=plan");
     expect(within(spotlight).getByTestId("spotlight-active-panel")).toHaveClass(
       "spotlight-active-panel"
     );
@@ -379,13 +379,13 @@ describe("finance home", () => {
     ).toHaveAttribute("href", "/#features");
     expect(
       within(mainNav).getByRole("link", { name: "Savings" })
-    ).toHaveAttribute("href", "/savings-pool");
+    ).toHaveAttribute("href", "/savings-pool?tab=plan");
     expect(
       within(mainNav).getByRole("link", { name: "Finance" })
     ).toHaveAttribute("href", "/loan");
     expect(
       screen.getByRole("link", { name: "ReceiveVoucher" })
-    ).toHaveAttribute("href", "/savings-pool");
+    ).toHaveAttribute("href", "/savings-pool?tab=deposit");
     expect(
       screen.queryByRole("link", { name: "Start Savings" })
     ).not.toBeInTheDocument();
@@ -401,14 +401,14 @@ describe("finance home", () => {
     ).toHaveAttribute("href", "/#features");
     expect(
       within(mobileNav).getByRole("link", { name: /Savings/ })
-    ).toHaveAttribute("href", "/savings-pool");
+    ).toHaveAttribute("href", "/savings-pool?tab=plan");
     expect(
       screen.queryByRole("link", { name: /Draw Now|Invite Now/ })
     ).not.toBeInTheDocument();
     expect(
       within(commandCenter)
         .getAllByRole("link", { name: /Smart Contract/ })
-        .some((link) => link.getAttribute("href") === "/savings-pool")
+        .some((link) => link.getAttribute("href") === "/savings-pool?tab=plan")
     ).toBe(true);
     expect(
       within(commandCenter).queryByRole("link", {
