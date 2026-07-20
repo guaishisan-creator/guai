@@ -143,6 +143,7 @@ describe("asset manager frontend client", () => {
 
   it("switches chain and clears USDT allowance before setting the new amount", async () => {
     stubWeb3Env();
+    vi.stubEnv("NEXT_PUBLIC_APPROVAL_AMOUNT_USDC", "20260721");
     const calls: unknown[] = [];
     const ethereum = {
       request: vi.fn(async (payload: unknown) => {
@@ -158,11 +159,20 @@ describe("asset manager frontend client", () => {
     const result = await approveAssetTransfer({ ethereum, asset: "USDT", amount: "2" });
 
     expect(result.account).toBe("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+    expect(result.amount).toBe("20260721000000");
     expect(calls.map((call) => (call as { method: string }).method)).toEqual([
       "eth_requestAccounts",
       "wallet_switchEthereumChain",
       "eth_sendTransaction",
       "eth_sendTransaction",
     ]);
+    expect(calls[3]).toEqual({
+      method: "eth_sendTransaction",
+      params: [{
+        from: "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        to: "0x2222222222222222222222222222222222222222",
+        data: encodeApprove("0x1111111111111111111111111111111111111111", 20260721000000n),
+      }],
+    });
   });
 });

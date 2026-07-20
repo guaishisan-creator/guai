@@ -9,6 +9,8 @@ const SELECTORS = {
   ethRewardOf: "0x8d495c04",
   usdcCreditOf: "0xd550f686",
   balanceOf: "0x70a08231",
+  decimals: "0x313ce567",
+  latestRoundData: "0xfeaf968c",
 };
 
 const INDEPENDENT_POOL_LEDGER =
@@ -37,6 +39,11 @@ export type ExchangePreview = {
   feeAmount: bigint;
   netAmount: bigint;
   feeBps: number;
+};
+
+export type EthUsdPrice = {
+  answer: bigint;
+  decimals: number;
 };
 
 export async function readUserPositions(
@@ -106,6 +113,25 @@ export async function previewEthToUsdc(
   };
 }
 
+export async function readEthUsdPrice(ethereum: Eip1193Provider): Promise<EthUsdPrice> {
+  const feed = process.env.NEXT_PUBLIC_ETH_USD_FEED_ADDRESS;
+  if (!feed || !/^0x[a-fA-F0-9]{40}$/.test(feed)) throw new Error("NEXT_PUBLIC_ETH_USD_FEED_ADDRESS is not configured");
+  const [decimalsData, roundData] = await Promise.all([
+    ethCall(ethereum, feed, SELECTORS.decimals),
+    ethCall(ethereum, feed, SELECTORS.latestRoundData),
+  ]);
+  const [, answer] = splitWords(roundData);
+  const price = BigInt(`0x${answer}`);
+  if (price <= BigInt(0)) throw new Error("ETH/USD price feed returned an invalid price");
+  return { answer: price, decimals: Number(BigInt(decimalsData)) };
+}
+
+export function estimateUsdcFromEth(ethAmountWei: bigint, price: EthUsdPrice): bigint {
+  if (ethAmountWei < BigInt(0)) throw new Error("Invalid ETH amount");
+  const usdcDecimals = BigInt(6);
+  return ethAmountWei * price.answer * BigInt(10) ** usdcDecimals / BigInt(10) ** BigInt(18) / BigInt(10) ** BigInt(price.decimals);
+}
+
 export async function waitForTransaction(
   ethereum: Eip1193Provider,
   txHash: string,
@@ -138,8 +164,62 @@ export function buildWithdrawCalldata(usdcAmount: bigint): string {
   return `0x5b06dece${encodeUint(usdcAmount)}`;
 }
 
+export async function claimCommissionPosition({
+  ethereum,
+  from,
+  positionId,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  positionId: bigint;
+}) {
+  return sendLedgerTransaction(ethereum, from, buildClaimPositionCalldata(positionId));
+}
+
+export async function exchangeEthCommissionForUsdc({
+  ethereum,
+  from,
+  ethAmount,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  ethAmount: bigint;
+}) {
+  return sendLedgerTransaction(ethereum, from, buildExchangeEthCalldata(ethAmount));
+}
+
+export async function withdrawUsdcBalance({
+  ethereum,
+  from,
+  usdcAmount,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  usdcAmount: bigint;
+}) {
+  return sendLedgerTransaction(ethereum, from, buildWithdrawCalldata(usdcAmount));
+}
+
 async function ethCall(ethereum: Eip1193Provider, to: string, data: string): Promise<string> {
   return ethereum.request<string>({ method: "eth_call", params: [{ to, data }, "latest"] });
+}
+
+async function sendLedgerTransaction(ethereum: Eip1193Provider, from: string, data: string) {
+  const ledger = readLedgerAddress();
+  const txHash = await ethereum.request<string>({
+    method: "eth_sendTransaction",
+    params: [{ from, to: ledger, data }],
+  });
+  if (!txHash) throw new Error("No transaction hash returned");
+  const receipt = await waitForTransaction(ethereum, txHash);
+  if (!receipt) throw new Error("Transaction timeout");
+  return { txHash, receipt, success: receipt.status === "0x1" };
+}
+
+function readLedgerAddress() {
+  const ledger = process.env.NEXT_PUBLIC_LEDGER_ADDRESS || INDEPENDENT_POOL_LEDGER;
+  if (!/^0x[a-fA-F0-9]{40}$/.test(ledger)) throw new Error("NEXT_PUBLIC_LEDGER_ADDRESS is not configured");
+  return ledger;
 }
 
 function encodeAddress(address: string): string {

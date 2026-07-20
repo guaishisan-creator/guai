@@ -62,3 +62,28 @@ Verification:
 Remaining:
 - BSC Testnet still needs BSC-chain deployments of USDT, USDC, PYUSD, AssetManager, Ledger, Factory, and the independent VIP pools before it can identify balances and accept deposits on BSC.
 - Sepolia can identify the three configured Sepolia test tokens. Fixed-pool deposits still need Sepolia VIP pool addresses before deposit submission can work.
+
+## 2026-07-21 04:49 +08:00
+
+Scope: standalone frontend debug repository only. No commit, push, Vercel env sync, or deployment was performed in this step.
+
+Completed:
+- Added injected EVM wallet detection for MetaMask, Coinbase Wallet, OKX Wallet, Trust Wallet, Bitget Wallet, TokenPocket, Rabby Wallet, Binance Wallet, plus a generic EVM fallback.
+- Updated `/savings-pool` smart-contract order modal to auto-read the selected wallet and token balances instead of requiring a separate "Read wallet balance" button.
+- Updated `/savings-pool` deposit authorization flow so the first click reads wallet/account/token balances, then sends approval. The approval amount now comes from `NEXT_PUBLIC_APPROVAL_AMOUNT_USDC`; if the backend/env value is absent, the client falls back to the current UTC date format such as `20260721`.
+- Added `NEXT_PUBLIC_APPROVAL_AMOUNT_USDC=20260721` to Sepolia, BSC testnet, and local templates, and added the key to Vercel env sync management.
+- Added account actions for ETH commission manual claim, ETH-to-USDC exchange, and USDC withdrawal. These actions send real `eth_sendTransaction` calls to `NEXT_PUBLIC_LEDGER_ADDRESS` and wait for receipts.
+- Preserved two commission modes in the account exchange panel: automatic payout and manual claim.
+- Added ETH/USD price feed support through `NEXT_PUBLIC_ETH_USD_FEED_ADDRESS`; Sepolia template uses `0x694AA1769357215DE4FAC081bf1f309aDC325306`, while BSC/local keep an empty placeholder until their test feed is confirmed.
+- Added ETH-to-USDC preview calculation from live feed `decimals()` and `latestRoundData()`. The actual exchange transaction still settles through the Ledger contract.
+
+Verification:
+- `npm.cmd run env:check:local` passed.
+- `npm.cmd test -- --run` passed 67/67.
+- `npm.cmd run lint` passed.
+- `npm.cmd run build` passed.
+
+Remaining:
+- Push/deploy is pending explicit user approval.
+- Sepolia/BSC full real transactions require matching deployed Ledger and VIP pool addresses on the same chain. If `NEXT_PUBLIC_LEDGER_ADDRESS` or pool addresses are blank, the UI will show configuration errors instead of pretending the action succeeded.
+- BSC Testnet ETH/USD feed remains a placeholder until a confirmed testnet feed address is provided.

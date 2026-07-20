@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -23,6 +23,15 @@ import {
   type AssetSymbol,
   type VipPlanName,
 } from "@/lib/asset-manager-client";
+import {
+  claimCommissionPosition,
+  exchangeEthCommissionForUsdc,
+  estimateUsdcFromEth,
+  readEthUsdPrice,
+  readUserBalance,
+  withdrawUsdcBalance,
+} from "@/lib/pool-integration";
+import { getPreferredEvmProvider, type DetectedWalletProvider } from "@/lib/wallet-provider";
 
 type Copy = {
   tabs: string[];
@@ -72,6 +81,7 @@ const en: Copy = {
     exchange: "Exchange",
     exchangeAsset: "Exchange Asset",
     exchangeHelp: "Convert ETH commission rewards into USDC",
+    exchangePreview: "Estimated USDC",
     withdrawalOnly: "Withdrawals are available in USDC only",
     totalBalance: "Total balance",
     confirm: "Confirm",
@@ -85,6 +95,17 @@ const en: Copy = {
     from: "From",
     connectedWallet: "Connected wallet",
     walletNotConnected: "Connect wallet first",
+    walletUnavailable: "No supported EVM wallet found",
+    walletReady: "Wallet ready",
+    authorizationReady: "Authorization submitted. You can continue to the plan page.",
+    commissionMode: "Commission mode",
+    automaticPayout: "Automatic",
+    manualPayout: "Manual claim",
+    claimPosition: "Claim commission",
+    positionId: "Position ID",
+    actionSubmitted: "Transaction submitted",
+    actionConfirmed: "Transaction confirmed",
+    ledgerUnavailable: "Pool ledger is not configured",
     to: "To",
     all: "All",
     depositAsset: "Deposit Asset",
@@ -145,6 +166,7 @@ const zh: Copy = {
     convertAll: "全部转换",
     exchange: "交换",
     exchangeHelp: "将以太坊 (ETH) 兑换为 USDC",
+    exchangePreview: "预计可得USDC",
     totalBalance: "总余额",
     confirm: "确认",
     cancel: "取消",
@@ -156,6 +178,17 @@ const zh: Copy = {
     from: "从",
     connectedWallet: "转入钱包",
     walletNotConnected: "请先连接钱包",
+    walletUnavailable: "未检测到支持的钱包",
+    walletReady: "钱包已读取",
+    authorizationReady: "授权已提交，可继续进入计划页。",
+    commissionMode: "佣金发放方式",
+    automaticPayout: "自动发放",
+    manualPayout: "手动领取",
+    claimPosition: "领取佣金",
+    positionId: "仓位编号",
+    actionSubmitted: "交易已提交",
+    actionConfirmed: "交易已确认",
+    ledgerUnavailable: "共用池账本地址未配置",
     to: "到",
     all: "全部",
     transfer: "转移",
@@ -523,30 +556,28 @@ function OrderModal({
   const [status, setStatus] = useState(c.labels.walletNotConnected);
   const selectedSymbol = selectedAssetSymbol(asset);
   const available = selectedSymbol ? balances[selectedSymbol] || "0" : "TRON wallet";
-  const loadBalances = async () => {
-    const maybeEthereum = (window as Window & { ethereum?: { request?: (payload: { method: string; params?: unknown[] }) => Promise<unknown> } }).ethereum;
-    if (!maybeEthereum?.request) {
-      setStatus("MetaMask not found");
-      return;
-    }
-    try {
-      setStatus("Reading wallet balance");
-      const result = await readLocalAssetBalances({ ethereum: { request: maybeEthereum.request } });
-      setWalletAddress(result.account);
-      setBalances(result.balances);
-      setStatus("Wallet balance loaded");
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Balance read failed");
-    }
-  };
+  useEffect(() => {
+    if (!selectedSymbol) return;
+    const detected = getPreferredEvmProvider(window);
+    if (!detected) return;
+    void readLocalAssetBalances({ ethereum: detected.provider })
+      .then((result) => {
+        setWalletAddress(result.account);
+        setBalances(result.balances);
+        setStatus(`${detected.name} · ${c.labels.walletReady}`);
+      })
+      .catch((error) => {
+        setStatus(error instanceof Error ? error.message : "Balance read failed");
+      });
+  }, [asset, c.labels.walletReady, c.labels.walletUnavailable, selectedSymbol]);
   const confirmOrder = async () => {
     if (!selectedSymbol) {
       setStatus("TRON USDT requires the TRON wallet flow");
       return;
     }
-    const maybeEthereum = (window as Window & { ethereum?: { request?: (payload: { method: string; params?: unknown[] }) => Promise<unknown> } }).ethereum;
-    if (!maybeEthereum?.request) {
-      setStatus("MetaMask not found");
+    const detected = getPreferredEvmProvider(window);
+    if (!detected) {
+      setStatus(c.labels.walletUnavailable);
       return;
     }
     const vip = planToVipName(plan);
@@ -557,7 +588,7 @@ function OrderModal({
     try {
       setStatus("Waiting for wallet confirmation");
       const result = await openFixedSavingsPosition({
-        ethereum: { request: maybeEthereum.request },
+        ethereum: detected.provider,
         asset: selectedSymbol,
         plan: vip,
         amount,
@@ -651,13 +682,6 @@ function OrderModal({
           </label>
           <button
             type="button"
-            onClick={loadBalances}
-            className="w-full rounded-lg border border-cyan/40 bg-bg px-4 py-3 text-sm font-semibold text-cyan transition hover:bg-cyan/10"
-          >
-            Read wallet balance
-          </button>
-          <button
-            type="button"
             onClick={confirmOrder}
             className="w-full rounded-lg border border-cyan/50 bg-gradient-to-r from-cyan via-accent to-violet px-4 py-3.5 text-sm font-extrabold text-bg shadow-[0_0_28px_rgba(61,214,255,0.38)] transition hover:brightness-110"
           >
@@ -674,28 +698,107 @@ function OrderModal({
 }
 
 function AccountPanel() {
-  const [tab, setTab] = useState(0);
   const { c } = usePoolCopy();
+  const [tab, setTab] = useState(0);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [poolBalance, setPoolBalance] = useState({ ethCommission: BigInt(0), usdc: BigInt(0), withdrawable: BigInt(0) });
+  const [status, setStatus] = useState("");
+  const loadAccount = async () => {
+    const detected = getPreferredEvmProvider(window);
+    if (!detected) {
+      setStatus(c.labels.walletUnavailable);
+      return null;
+    }
+    const local = await readLocalAssetBalances({ ethereum: detected.provider });
+    const balance = await readUserBalance(detected.provider, local.account);
+    setWalletAddress(local.account);
+    setPoolBalance(balance);
+    setStatus(`${detected.name} · ${c.labels.walletReady}`);
+    return { detected, account: local.account };
+  };
   return (
     <section className="space-y-4" data-testid="contract-account-panel">
       <h2 className="text-lg font-semibold">{c.labels.myAccount}</h2>
       <div className="rounded-md border border-line bg-surface-soft px-4">
-        {c.accountData.map(([label, value, unit]) => (
-          <Cell key={label} label={label} value={value} unit={unit} />
-        ))}
+        <Cell label={c.accountData[0][0]} value={formatUnit(poolBalance.ethCommission, 18)} unit="ETH" />
+        <Cell label={c.accountData[1][0]} value={formatUnit(poolBalance.usdc, 6)} unit="USDC" />
+        <Cell label={c.accountData[2][0]} value={formatUnit(poolBalance.ethCommission, 18)} unit="ETH" />
+      </div>
+      <div className="rounded-md border border-line/70 bg-bg/35 p-3 text-xs text-muted">
+        <p>{walletAddress || c.labels.walletNotConnected}</p>
+        <p className="mt-1">{status}</p>
       </div>
       <InnerTabs items={c.accountTabs} active={tab} onChange={setTab} />
-      {tab === 0 ? <ExchangePanel /> : null}
-      {tab === 1 ? <WithdrawPanel /> : null}
+      {tab === 0 ? <ExchangePanel balance={poolBalance} loadAccount={loadAccount} setStatus={setStatus} /> : null}
+      {tab === 1 ? <WithdrawPanel balance={poolBalance} loadAccount={loadAccount} setStatus={setStatus} /> : null}
       {tab === 2 ? <RecordPanel /> : null}
     </section>
   );
 }
 
-function ExchangePanel() {
+function ExchangePanel({
+  balance,
+  loadAccount,
+  setStatus,
+}: {
+  balance: { ethCommission: bigint; usdc: bigint; withdrawable: bigint };
+  loadAccount: () => Promise<{ detected: DetectedWalletProvider; account: string } | null>;
+  setStatus: (value: string) => void;
+}) {
   const { c } = usePoolCopy();
+  const [amount, setAmount] = useState("");
+  const [mode, setMode] = useState<"auto" | "manual">("auto");
+  const [positionId, setPositionId] = useState("");
+  const [preview, setPreview] = useState("");
+  const updatePreview = async (value: string) => {
+    setAmount(value);
+    try {
+      const connection = await loadAccount();
+      if (!connection) return;
+      const price = await readEthUsdPrice(connection.detected.provider);
+      setPreview(formatUnit(estimateUsdcFromEth(parseUnits(value || "0", 18), price), 6));
+    } catch (error) {
+      setPreview(error instanceof Error ? error.message : "");
+    }
+  };
+  const exchange = async () => {
+    try {
+      const connection = await loadAccount();
+      if (!connection) return;
+      setStatus(c.labels.actionSubmitted);
+      const raw = parseUnits(amount || formatUnit(balance.ethCommission, 18), 18);
+      const result = await exchangeEthCommissionForUsdc({ ethereum: connection.detected.provider, from: connection.account, ethAmount: raw });
+      setStatus(result.success ? c.labels.actionConfirmed : c.labels.actionSubmitted);
+    } catch (error) {
+      setStatus(error instanceof Error && error.message.includes("LEDGER") ? c.labels.ledgerUnavailable : error instanceof Error ? error.message : "Exchange failed");
+    }
+  };
+  const claim = async () => {
+    try {
+      const connection = await loadAccount();
+      if (!connection) return;
+      setStatus(c.labels.actionSubmitted);
+      const result = await claimCommissionPosition({ ethereum: connection.detected.provider, from: connection.account, positionId: BigInt(positionId || "0") });
+      setStatus(result.success ? c.labels.actionConfirmed : c.labels.actionSubmitted);
+    } catch (error) {
+      setStatus(error instanceof Error && error.message.includes("LEDGER") ? c.labels.ledgerUnavailable : error instanceof Error ? error.message : "Claim failed");
+    }
+  };
   return (
     <div className="space-y-3 rounded-md border border-line bg-surface-soft p-4">
+      <div className="grid grid-cols-2 overflow-hidden rounded-md border border-line bg-surface text-sm font-semibold">
+        <button type="button" onClick={() => setMode("auto")} className={`px-3 py-2 ${mode === "auto" ? "bg-accent text-bg" : "text-muted"}`}>{c.labels.automaticPayout}</button>
+        <button type="button" onClick={() => setMode("manual")} className={`px-3 py-2 ${mode === "manual" ? "bg-accent text-bg" : "text-muted"}`}>{c.labels.manualPayout}</button>
+      </div>
+      {mode === "manual" ? (
+        <div className="space-y-2">
+          <label className="block text-sm text-muted">
+            {c.labels.positionId}
+            <input value={positionId} onChange={(event) => setPositionId(event.target.value)} inputMode="numeric" className="mt-2 w-full rounded-md border border-line bg-surface px-3 py-3 text-ink outline-none" placeholder="0" />
+          </label>
+          <button type="button" onClick={claim} className="w-full rounded-md border border-cyan/40 bg-bg px-4 py-3 text-sm font-semibold text-cyan">{c.labels.claimPosition}</button>
+        </div>
+      ) : null}
       <label className="block text-sm text-muted">
         {c.labels.exchangeAsset}
         <select
@@ -714,13 +817,20 @@ function ExchangePanel() {
       <label className="block text-sm text-muted">
         {c.labels.exchange}
         <input
+          value={amount}
+          onChange={(event) => void updatePreview(event.target.value)}
           className="mt-2 w-full rounded-md border border-line bg-surface px-3 py-3 text-ink outline-none"
           placeholder="0.0"
         />
       </label>
+      <div className="flex items-center justify-between rounded-md border border-line/70 bg-bg/35 px-3 py-2 text-sm">
+        <span className="text-muted">{c.labels.exchangePreview}</span>
+        <span className="font-semibold text-ink">{preview || "0"} USDC</span>
+      </div>
       <p className="text-sm text-muted">{c.labels.exchangeHelp}</p>
       <button
         type="button"
+        onClick={exchange}
         className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-bg"
       >
         {c.labels.exchange}
@@ -729,8 +839,29 @@ function ExchangePanel() {
   );
 }
 
-function WithdrawPanel() {
+function WithdrawPanel({
+  balance,
+  loadAccount,
+  setStatus,
+}: {
+  balance: { ethCommission: bigint; usdc: bigint; withdrawable: bigint };
+  loadAccount: () => Promise<{ detected: DetectedWalletProvider; account: string } | null>;
+  setStatus: (value: string) => void;
+}) {
   const { c } = usePoolCopy();
+  const [amount, setAmount] = useState("");
+  const withdraw = async () => {
+    try {
+      const connection = await loadAccount();
+      if (!connection) return;
+      setStatus(c.labels.actionSubmitted);
+      const raw = parseUnits(amount || formatUnit(balance.withdrawable, 6), 6);
+      const result = await withdrawUsdcBalance({ ethereum: connection.detected.provider, from: connection.account, usdcAmount: raw });
+      setStatus(result.success ? c.labels.actionConfirmed : c.labels.actionSubmitted);
+    } catch (error) {
+      setStatus(error instanceof Error && error.message.includes("LEDGER") ? c.labels.ledgerUnavailable : error instanceof Error ? error.message : "Withdraw failed");
+    }
+  };
   return (
     <div className="space-y-3 rounded-md border border-line bg-surface-soft p-4">
       <div className="font-semibold">{c.labels.treasury}</div>
@@ -740,12 +871,15 @@ function WithdrawPanel() {
       <label className="block text-sm text-muted">
         {c.labels.totalBalance}
         <input
+          value={amount}
+          onChange={(event) => setAmount(event.target.value)}
           className="mt-2 w-full rounded-md border border-line bg-surface px-3 py-3 text-ink outline-none"
-          placeholder="0.0"
+          placeholder={formatUnit(balance.withdrawable, 6)}
         />
       </label>
       <button
         type="button"
+        onClick={withdraw}
         className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-bg"
       >
         {c.labels.confirm}
@@ -780,7 +914,9 @@ function DepositPanel() {
   const [asset, setAsset] = useState(savingsPoolDepositConfig.assets[0].id);
   const [amount, setAmount] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
+  const [balances, setBalances] = useState<Partial<Record<AssetSymbol, string>>>({});
   const [status, setStatus] = useState(c.labels.walletNotConnected);
+  const [authorized, setAuthorized] = useState(false);
   const activePlan = savingsPoolPlans.find(
     (plan) => plan.id === savingsPoolDepositConfig.activePlanId
   );
@@ -788,22 +924,30 @@ function DepositPanel() {
     ? `${activePlan.name} Smart Contract`
     : savingsPoolDepositConfig.temporaryPoolLabel;
   const approveDeposit = async () => {
-    const maybeEthereum = (window as Window & { ethereum?: { request?: (payload: { method: string; params?: unknown[] }) => Promise<unknown> } }).ethereum;
-    if (!maybeEthereum?.request) {
-      setStatus("MetaMask not found");
+    if (authorized) {
+      setStatus(c.labels.authorizationReady);
       return;
     }
-    const ethereum = { request: maybeEthereum.request };
+    const detected = getPreferredEvmProvider(window);
+    if (!detected) {
+      setStatus(c.labels.walletUnavailable);
+      return;
+    }
     const symbol = selectedAssetSymbol(asset);
     if (!symbol) {
       setStatus("TRON assets require the TRON wallet flow");
       return;
     }
     try {
+      setStatus("Reading wallet balance");
+      const snapshot = await readLocalAssetBalances({ ethereum: detected.provider });
+      setWalletAddress(snapshot.account);
+      setBalances(snapshot.balances);
       setStatus("Waiting for wallet confirmation");
-      const result = await approveAssetTransfer({ ethereum, asset: symbol, amount });
+      const result = await approveAssetTransfer({ ethereum: detected.provider, asset: symbol, amount });
       setWalletAddress(result.account);
-      setStatus("Authorization submitted");
+      setAuthorized(true);
+      setStatus(`${detected.name} · ${c.labels.authorizationReady}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Authorization failed");
     }
@@ -863,7 +1007,7 @@ function DepositPanel() {
             </button>
           </span>
         </label>
-        <p className="mt-3 text-sm text-muted">0 {savingsPoolDepositConfig.assets.find((item) => item.id === asset)?.label || asset}</p>
+        <p className="mt-3 text-sm text-muted">{selectedAssetSymbol(asset) ? balances[selectedAssetSymbol(asset) as AssetSymbol] || "0" : "0"} {savingsPoolDepositConfig.assets.find((item) => item.id === asset)?.label || asset}</p>
       </div>
       <p className="rounded-md border border-accent/20 bg-accent/5 p-3 text-sm leading-6 text-muted">
         {c.labels.depositRouting}
@@ -873,7 +1017,7 @@ function DepositPanel() {
         onClick={approveDeposit}
         className="w-full rounded-md bg-accent px-4 py-3 text-sm font-semibold text-bg"
       >
-        {c.labels.deposit}
+        {authorized ? c.labels.smartContract : c.labels.deposit}
       </button>
       <p className="text-xs text-muted" data-testid="deposit-wallet-status">{status}</p>
     </section>
@@ -893,6 +1037,20 @@ function planToVipName(plan: SavingsPoolPlan): VipPlanName | null {
     return plan.name;
   }
   return null;
+}
+
+function parseUnits(value: string, decimals: number) {
+  const normalized = value.replace(/,/g, "").trim();
+  if (!/^\d+(\.\d+)?$/.test(normalized)) throw new Error("Invalid amount");
+  const [whole, fraction = ""] = normalized.split(".");
+  return BigInt(whole) * BigInt(10) ** BigInt(decimals) + BigInt((fraction + "0".repeat(decimals)).slice(0, decimals));
+}
+
+function formatUnit(value: bigint, decimals: number) {
+  const base = BigInt(10) ** BigInt(decimals);
+  const whole = value / base;
+  const fraction = (value % base).toString().padStart(decimals, "0").replace(/0+$/, "");
+  return fraction ? `${whole}.${fraction}` : whole.toString();
 }
 
 function EmptyState() {

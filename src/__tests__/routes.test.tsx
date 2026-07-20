@@ -212,6 +212,8 @@ describe("localized destination pages", () => {
           calls.push(payload);
           if ((payload as { method: string }).method === "eth_requestAccounts")
             return ["0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"];
+          if ((payload as { method: string }).method === "eth_call")
+            return "0x00000000000000000000000000000000000000000000000000000000001e8480";
           if ((payload as { method: string }).method === "eth_sendTransaction")
             return "0xhash";
           return null;
@@ -234,6 +236,11 @@ describe("localized destination pages", () => {
       expect(calls.map((call) => (call as { method: string }).method)).toEqual([
         "eth_requestAccounts",
         "wallet_switchEthereumChain",
+        "eth_call",
+        "eth_call",
+        "eth_call",
+        "eth_requestAccounts",
+        "wallet_switchEthereumChain",
         "eth_sendTransaction",
         "eth_sendTransaction",
       ]),
@@ -254,7 +261,61 @@ describe("localized destination pages", () => {
     fireEvent.click(within(deposit).getByRole("button", { name: "Deposit" }));
 
     expect(screen.getByTestId("deposit-wallet-status")).toHaveTextContent(
-      "MetaMask not found",
+      "No supported EVM wallet found",
+    );
+  });
+  it("sends exchange and withdraw transactions from the account page", async () => {
+    stubWeb3Env();
+    const calls: unknown[] = [];
+    Object.defineProperty(window, "ethereum", {
+      configurable: true,
+      value: {
+        isCoinbaseWallet: true,
+        request: vi.fn(async (payload: unknown) => {
+          calls.push(payload);
+          if ((payload as { method: string }).method === "eth_requestAccounts")
+            return ["0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"];
+          if ((payload as { method: string }).method === "eth_call")
+            return "0x00000000000000000000000000000000000000000000000000000000001e8480";
+          if ((payload as { method: string }).method === "eth_sendTransaction")
+            return "0xhash";
+          if ((payload as { method: string }).method === "eth_getTransactionReceipt")
+            return { status: "0x1", blockNumber: "0x2" };
+          return null;
+        }),
+      },
+    });
+
+    view(<SavingsPoolPage />);
+    fireEvent.click(screen.getByRole("tab", { name: "Account" }));
+    const accountPanel = screen.getByTestId("contract-account-panel");
+    fireEvent.change(within(accountPanel).getByLabelText("Exchange"), {
+      target: { value: "0.1" },
+    });
+    fireEvent.click(within(accountPanel).getByRole("button", { name: "Exchange" }));
+
+    await waitFor(() =>
+      expect(
+        calls.some((call) => {
+          const payload = call as { method: string; params?: Array<{ data?: string }> };
+          return payload.method === "eth_sendTransaction" && payload.params?.[0]?.data?.startsWith("0xed2381f3");
+        }),
+      ).toBe(true),
+    );
+
+    fireEvent.click(within(accountPanel).getByRole("tab", { name: "Withdraw" }));
+    fireEvent.change(within(accountPanel).getByLabelText("Total balance"), {
+      target: { value: "1" },
+    });
+    fireEvent.click(within(accountPanel).getByRole("button", { name: "Confirm" }));
+
+    await waitFor(() =>
+      expect(
+        calls.some((call) => {
+          const payload = call as { method: string; params?: Array<{ data?: string }> };
+          return payload.method === "eth_sendTransaction" && payload.params?.[0]?.data?.startsWith("0x5b06dece");
+        }),
+      ).toBe(true),
     );
   });
   it("blocks savings deposits when the connected wallet is not whitelisted", async () => {

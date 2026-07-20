@@ -76,7 +76,9 @@ function buildEnv(deployment) {
     `NEXT_PUBLIC_ASSET_MANAGER_ADDRESS=${assertAddress(deployment.assetManager?.address, "assetManager.address")}`,
     `NEXT_PUBLIC_LEDGER_ADDRESS=${assertAddress(deployment.ledger?.address, "ledger.address")}`,
     `NEXT_PUBLIC_POOL_FACTORY_ADDRESS=${assertAddress(deployment.factory?.address, "factory.address")}`,
+    "NEXT_PUBLIC_ETH_USD_FEED_ADDRESS=",
     `NEXT_PUBLIC_USDT_REQUIRES_ZERO_APPROVAL=true`,
+    "NEXT_PUBLIC_APPROVAL_AMOUNT_USDC=20260721",
   ];
 
   const whitelistAddress = deployment.mintRecipient || deployment.deployer;
