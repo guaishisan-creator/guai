@@ -22,6 +22,7 @@
     "visual:check": "node scripts/visual-check.mjs"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest"
@@ -31,6 +32,7 @@
     "@tailwindcss/postcss": "latest",
     "@testing-library/jest-dom": "latest",
     "@testing-library/react": "latest",
+    "@types/axios": "^0.14.0",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
