@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 
 import { mobileMysteryCopy, mobileYieldCopy } from "./savings-command-center";
 import { spotlightCopy, type SpotlightKey } from "./mobile-spotlight-hub";
@@ -89,10 +88,10 @@ export function DesktopOpportunityDeck() {
             <span className="size-2 rounded-full bg-success shadow-[0_0_12px_#22c55e]" />
           </div>
           <div className="mt-3 divide-y divide-line/70">
-            {stats.items.map((item) => (
-              <div key={item.label} className="flex items-center justify-between py-2.5">
-                <span className="text-sm text-muted">{item.label}</span>
-                <span className={`text-sm font-semibold ${item.highlight ? "text-cyan" : "text-ink"}`}>{item.value}</span>
+            {stats.items.map((item, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5">
+                <span className="text-sm text-muted">{item[0]}</span>
+                <span className="text-sm font-semibold text-cyan">{item[1]}</span>
               </div>
             ))}
           </div>
@@ -101,30 +100,12 @@ export function DesktopOpportunityDeck() {
         <section data-testid="desktop-mystery-card" className="relative overflow-hidden rounded-panel border border-violet/30 bg-surface-soft/85 p-5">
           <div className="absolute -right-6 -top-6 size-28 rounded-full bg-violet/10 blur-xl" />
           <div className="relative">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <p className="text-xs font-bold tracking-[.18em] text-violet">{mystery.eyebrow}</p>
-                <h2 className="mt-1.5 text-lg font-semibold leading-snug">{mystery.title}</h2>
-              </div>
-              {mystery.image && (
-                <Image
-                  src={mystery.image}
-                  alt={mystery.title}
-                  width={56}
-                  height={56}
-                  className="shrink-0 rounded-lg"
-                />
-              )}
-            </div>
+            <p className="text-xs font-bold tracking-[.18em] text-violet">{mystery.eyebrow}</p>
+            <h2 className="mt-1.5 text-lg font-semibold leading-snug">{mystery.title}</h2>
             <p className="mt-2 text-sm leading-5 text-muted">{mystery.detail}</p>
-            {mystery.href && (
-              <a
-                href={mystery.href}
-                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-violet transition-opacity hover:opacity-80"
-              >
-                {mystery.cta} →
-              </a>
-            )}
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-violet">
+              {mystery.action} →
+            </span>
           </div>
         </section>
       </div>
