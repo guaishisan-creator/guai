@@ -1,32 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-// 💡 引入 Web3 相关钩子与解析工具
-import { 
-  useAccount, 
-  useConnectModal, 
-  useReadContract, 
-  useWriteContract, 
-  useWaitForTransactionReceipt 
-} from 'wagmi';
-import { parseUnits } from 'viem';
 
 import { mobileMysteryCopy, mobileYieldCopy } from "./savings-command-center";
 import { spotlightCopy, type SpotlightKey } from "./mobile-spotlight-hub";
 import { useLocale } from "@/i18n/locale-provider";
 import type { Locale } from "@/i18n/locales";
-
-// --- 💡 Web3 配置参数 (请根据实际情况修改) ---
-const TOKEN_ADDRESS = '0x...';      // 您的 ERC20 代币合约地址
-const SPENDER_ADDRESS = '0x...';    // 允许动用代币的目标合约地址
-const APPROVE_AMOUNT = '100';       // 想要授权的数量
-
-const erc20Abi = [
-  { name: 'balanceOf', type: 'function', stateMutability: 'view', inputs: [{ name: 'account', type: 'address' }], outputs: [{ name: '', type: 'uint256' }] },
-  { name: 'decimals', type: 'function', stateMutability: 'view', inputs: [], outputs: [{ name: '', type: 'uint8' }] },
-  { name: 'approve', type: 'function', stateMutability: 'nonpayable', inputs: [{ name: 'spender', type: 'address' }, { name: 'value', type: 'uint256' }], outputs: [{ name: '', type: 'bool' }] },
-] as const;
+import { HeaderWalletButton } from "@/components/layout/header-wallet-button";
 
 const deckCopy: Record<Locale, { eyebrow: string; title: string; live: string }> = {
   en: { eyebrow: "OPPORTUNITY NETWORK", title: "Savings access console", live: "LIVE" },
@@ -46,133 +27,6 @@ export function DesktopOpportunityDeck() {
   const stats = mobileYieldCopy[locale];
   const deck = deckCopy[locale];
 
-  // --- 💡 1. 钱包连接与状态管理 ---
-  const { address, isConnected } = useAccount();
-  const { openConnectModal } = useConnectModal();
-  const { writeContract, data: txHash, isPending: isSigning } = useWriteContract();
-  const [whitelistStatus, setWhitelistStatus] = useState<'idle' | 'checking' | 'passed' | 'failed'>('idle');
-
-  // --- 💡 2. 模拟白名单校验 API ---
-  const verifyWhitelist = async (userAddress: string) => {
-    setWhitelistStatus('checking');
-    try {
-      // 模拟请求后端接口，实际开发时请替换为您的真实 fetch 请求
-      await new Promise(resolve => setTimeout(resolve, 1000)); 
-      const isWhitelisted = true; // 模拟校验通过
-      setWhitelistStatus(isWhitelisted ? 'passed' : 'failed');
-    } catch {
-      setWhitelistStatus('failed');
-    }
-  };
-
-  useEffect(() => {
-    if (isConnected && address) {
-      verifyWhitelist(address);
-    } else {
-      setWhitelistStatus('idle');
-    }
-  }, [isConnected, address]);
-
-  // --- 💡 3. 读取链上代币信息 ---
-  const { data: decimals } = useReadContract({
-    address: TOKEN_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'decimals',
-  });
-
-  const { data: balance, refetch: refetchBalance } = useReadContract({
-    address: TOKEN_ADDRESS,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    query: { enabled: !!address && whitelistStatus === 'passed' }
-  });
-
-  // --- 💡 4. 等待区块打包收据 ---
-  const { isLoading: isConfirming, isSuccess: isApproveSuccess } = useWaitForTransactionReceipt({ hash: txHash });
-
-  useEffect(() => {
-    if (isApproveSuccess) {
-      refetchBalance();
-      alert('授权成功！');
-    }
-  }, [isApproveSuccess]);
-
-  // --- 💡 5. 发起授权点击事件 ---
-  const handleApprove = () => {
-    if (!decimals) return;
-    const rawAmount = parseUnits(APPROVE_AMOUNT, decimals);
-    writeContract({
-      address: TOKEN_ADDRESS,
-      abi: erc20Abi,
-      functionName: 'approve',
-      args: [SPENDER_ADDRESS, rawAmount],
-    });
-  };
-
-  // --- 💡 6. 动态控制核心按钮的状态机渲染 ---
-  const renderWeb3Button = () => {
-    // 状态 A: 钱包未连接
-    if (!isConnected) {
-      return (
-        <button type="button" onClick={openConnectModal} className="primary-button mt-5 rounded-lg px-5 py-2.5 text-sm font-bold">
-          连接加密钱包
-        </button>
-      );
-    }
-    // 状态 B: 正在校验白名单
-    if (whitelistStatus === 'checking') {
-      return (
-        <button type="button" disabled className="mt-5 rounded-lg border border-line bg-bg/50 px-5 py-2.5 text-sm font-semibold text-muted cursor-wait">
-          正在校验白名单...
-        </button>
-      );
-    }
-    // 状态 C: 白名单校验失败
-    if (whitelistStatus === 'failed') {
-      return (
-        <button type="button" disabled className="mt-5 rounded-lg border border-red-500/30 bg-red-500/10 px-5 py-2.5 text-sm font-semibold text-red-400 cursor-not-allowed">
-          非白名单地址，无权操作
-        </button>
-      );
-    }
-    // 状态 D: 钱包中等待用户点击确认签名
-    if (isSigning) {
-      return (
-        <button type="button" disabled className="primary-button mt-5 rounded-lg px-5 py-2.5 text-sm font-bold animate-pulse cursor-wait">
-          请在钱包中确认授权...
-        </button>
-      );
-    }
-    // 状态 E: 交易已提交，等待区块链节点打包
-    if (isConfirming) {
-      return (
-        <button type="button" disabled className="mt-5 rounded-lg border border-cyan/40 bg-cyan/10 px-5 py-2.5 text-sm font-semibold text-cyan animate-pulse cursor-wait">
-          区块上链打包中...
-        </button>
-      );
-    }
-    // 状态 F: 链上授权圆满成功
-    if (isApproveSuccess) {
-      return (
-        <button type="button" disabled className="mt-5 rounded-lg border border-success/30 bg-success/20 px-5 py-2.5 text-sm font-semibold text-success cursor-not-allowed">
-          已成功授权
-        </button>
-      );
-    }
-
-    // 默认正常状态: 白名单已通过，展示余额，等待点击“授权”
-    const formattedBalance = balance && decimals ? (Number(balance) / 10 ** decimals).toFixed(2) : '0.00';
-    return (
-      <div className="mt-5 flex flex-col items-start gap-1">
-        <span className="text-[11px] text-muted">当前代币余额: <strong className="text-cyan">{formattedBalance}</strong></span>
-        <button type="button" onClick={handleApprove} className="primary-button rounded-lg px-5 py-2.5 text-sm font-bold">
-          授权 {APPROVE_AMOUNT} 代币
-        </button>
-      </div>
-    );
-  };
-
   return (
     <section data-testid="desktop-opportunity-deck" className="mb-3 grid grid-cols-12 gap-3">
       <div className="relative col-span-8 min-h-[390px] overflow-hidden rounded-panel border border-violet/35 bg-[radial-gradient(circle_at_70%_35%,rgba(115,76,255,.22),transparent_36%),linear-gradient(145deg,#0d172c,#070d1d)] p-6 shadow-glow">
@@ -184,7 +38,7 @@ export function DesktopOpportunityDeck() {
           </div>
           <span className="rounded-full border border-success/30 bg-success/10 px-3 py-1 text-xs font-bold text-success">{deck.live}</span>
         </div>
-        
+
         <div className="relative mt-6 grid grid-cols-[210px_1fr] gap-5">
           <div className="space-y-2">
             {items.map((item, index) => (
@@ -219,9 +73,10 @@ export function DesktopOpportunityDeck() {
               <span className="text-xs font-bold tracking-[.2em] text-cyan">{active.eyebrow}</span>
               <h3 className="mt-2 text-3xl font-bold">{active.title}</h3>
               <p className="mt-3 max-w-md text-sm leading-6 text-muted">{active.detail}</p>
-              
-              {/* 💡 这里用状态机按钮完全替换了原先会导致网页跳转的 <a> 链接 */}
-              {renderWeb3Button()}
+              {/* 授权按钮：连接钱包 → 白名单验证 → 读取余额 → 授权 */}
+              <div className="mt-5">
+                <HeaderWalletButton />
+              </div>
             </div>
           </div>
         </div>
@@ -234,3 +89,45 @@ export function DesktopOpportunityDeck() {
             <span className="size-2 rounded-full bg-success shadow-[0_0_12px_#22c55e]" />
           </div>
           <div className="mt-3 divide-y divide-line/70">
+            {stats.items.map((item) => (
+              <div key={item.label} className="flex items-center justify-between py-2.5">
+                <span className="text-sm text-muted">{item.label}</span>
+                <span className={`text-sm font-semibold ${item.highlight ? "text-cyan" : "text-ink"}`}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section data-testid="desktop-mystery-card" className="relative overflow-hidden rounded-panel border border-violet/30 bg-surface-soft/85 p-5">
+          <div className="absolute -right-6 -top-6 size-28 rounded-full bg-violet/10 blur-xl" />
+          <div className="relative">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-xs font-bold tracking-[.18em] text-violet">{mystery.eyebrow}</p>
+                <h2 className="mt-1.5 text-lg font-semibold leading-snug">{mystery.title}</h2>
+              </div>
+              {mystery.image && (
+                <Image
+                  src={mystery.image}
+                  alt={mystery.title}
+                  width={56}
+                  height={56}
+                  className="shrink-0 rounded-lg"
+                />
+              )}
+            </div>
+            <p className="mt-2 text-sm leading-5 text-muted">{mystery.detail}</p>
+            {mystery.href && (
+              <a
+                href={mystery.href}
+                className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-violet transition-opacity hover:opacity-80"
+              >
+                {mystery.cta} →
+              </a>
+            )}
+          </div>
+        </section>
+      </div>
+    </section>
+  );
+}
