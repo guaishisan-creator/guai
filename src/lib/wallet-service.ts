@@ -1,4 +1,24 @@
-import { EthereumProvider, WalletType } from '@/types/web3'
+import { Eip1193Provider } from "@/types/web3";
+
+// 连接钱包并强制检查是不是 Sepolia 测试网
+export async function connectWallet(ethereum: Eip1193Provider): Promise<string> {
+  const accounts = await ethereum.request<string[]>({ method: "eth_requestAccounts" });
+  if (!accounts || accounts.length === 0) throw new Error("未连接钱包");
+
+  // 强力卡控：检查当前钱包网络是不是以太坊 Sepolia (11155111 = 0xaa36a7)
+  const chainId = await ethereum.request<string>({ method: "eth_chainId" });
+  if (chainId !== "0xaa36a7") {
+    // 自动提示钱包切换网络到 Sepolia
+    try {
+      await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0xaa36a7" }] });
+    } catch (err) {
+      alert("请在钱包中将网络切换为以太坊 Sepolia 测试网后再试！");
+      throw new Error("网络错误");
+    }
+  }
+  return accounts[0];
+}
+
 
 /**
  * Web3 钱包检测和连接服务
