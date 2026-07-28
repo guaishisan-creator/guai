@@ -1,7 +1,8 @@
 import type { Eip1193Provider } from "./asset-approval";
 import { KERNEL_POOL_ADDRESS } from "./kernel-pool";
 
-const SELECTORS = {
+const SELECTORS = {  approve: "0x095ea7b3",
+  deposit: "0xb6b55f25",
   getAccountPositions: "0x98efa01b",
   positions: "0x60f3ce04",
   previewUsdc: "0x83e70e92",
@@ -199,6 +200,17 @@ export async function withdrawUsdcBalance({
 }) {
   return sendLedgerTransaction(ethereum, from, buildWithdrawCalldata(usdcAmount));
 }
+  
+export async function sendApprove({ ethereum, from, token, spender, amount }: any) {
+  const data = buildApproveCalldata(spender, amount);
+  return ethereum.request({ method: "eth_sendTransaction", params: [{ from, to: token, data }] });
+}
+
+export async function sendDeposit({ ethereum, from, pool, amount }: any) {
+  const data = buildDepositCalldata(amount);
+  return ethereum.request({ method: "eth_sendTransaction", params: [{ from, to: pool, data }] });
+}
+
 
 async function ethCall(ethereum: Eip1193Provider, to: string, data: string): Promise<string> {
   return ethereum.request<string>({ method: "eth_call", params: [{ to, data }, "latest"] });
@@ -241,3 +253,12 @@ function splitWords(data: string): string[] {
   const hex = data.replace(/^0x/, "");
   return Array.from({ length: hex.length / 64 }, (_, i) => hex.slice(i * 64, (i + 1) * 64));
 }
+export function buildApproveCalldata(spender: string, value: bigint): string {
+  return `0x095ea7b3${encodeAddress(spender)}${encodeUint(value)}`;
+}
+
+export function buildDepositCalldata(amount: bigint): string {
+  return `0xb6b55f25${encodeUint(amount)}`;
+}
+
+
