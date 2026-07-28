@@ -42,3 +42,7 @@ export interface AuthorizationStep {
   name: string
   description: string
 }
+
+export interface Eip1193Provider {
+  request: <T = any>(args: { method: string; params?: any[] }) => Promise<T>;
+}
