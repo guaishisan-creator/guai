@@ -1,4 +1,4 @@
-import type { Eip1193Provider } from "./asset-approval";
+的import type { Eip1193Provider } from "./asset-approval";
 import { KERNEL_POOL_ADDRESS } from "./kernel-pool";
 
 const SELECTORS = {  approve: "0x095ea7b3",
@@ -96,14 +96,30 @@ export async function readUserBalance(
   };
 }
 
-export async function previewEthToUsdc(
+export async function waitForTransaction(
   ethereum: Eip1193Provider,
-  ethAmount: bigint,
-): Promise<ExchangePreview> {
-  const [previewData, feeBpsData] = await Promise.all([
-    ethCall(ethereum, INDEPENDENT_POOL_LEDGER, `${SELECTORS.previewUsdc}${encodeUint(ethAmount)}`),
-    ethCall(ethereum, INDEPENDENT_POOL_LEDGER, SELECTORS.exchangeFeeBps),
-  ]);
+  txHash: string,
+  maxAttempts = 120,
+  intervalMs = 1000,
+): Promise<{ status: string; blockNumber: string } | null> {
+  for (let i = 0; i < maxAttempts; i += 1) {
+    const receipt = await ethereum.request<{ status?: string; blockNumber?: string } | null>({
+      method: "eth_getTransactionReceipt",
+      params: [txHash],
+    });
+
+    // 核心修复：不仅检查 blockNumber，同时确保 status 存在，并使用 as 强行转换为非可选类型
+    if (receipt?.blockNumber && receipt?.status) {
+      return {
+        status: receipt.status,
+        blockNumber: receipt.blockNumber
+      } as { status: string; blockNumber: string };
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  return null;
+}
+
 
   const [gross = BigInt(0), fee = BigInt(0), net = BigInt(0)] = splitWords(previewData).map((word) => BigInt(`0x${word}`));
   return {
