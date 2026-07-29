@@ -1,4 +1,4 @@
-import { Eip1193Provider } from "@/types/web3";
+import type { Eip1193Provider, EthereumProvider, WalletType } from "@/types/web3";
 
 // 连接钱包并强制检查是不是 Sepolia 测试网
 export async function connectWallet(ethereum: Eip1193Provider): Promise<string> {

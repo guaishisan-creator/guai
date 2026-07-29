@@ -1,7 +1,8 @@
-的import type { Eip1193Provider } from "./asset-approval";
+import type { Eip1193Provider } from "./asset-approval";
 import { KERNEL_POOL_ADDRESS } from "./kernel-pool";
 
-const SELECTORS = {  approve: "0x095ea7b3",
+const SELECTORS = {
+  approve: "0x095ea7b3",
   deposit: "0xb6b55f25",
   getAccountPositions: "0x98efa01b",
   positions: "0x60f3ce04",
@@ -96,31 +97,14 @@ export async function readUserBalance(
   };
 }
 
-export async function waitForTransaction(
+export async function readExchangePreview(
   ethereum: Eip1193Provider,
-  txHash: string,
-  maxAttempts = 120,
-  intervalMs = 1000,
-): Promise<{ status: string; blockNumber: string } | null> {
-  for (let i = 0; i < maxAttempts; i += 1) {
-    const receipt = await ethereum.request<{ status?: string; blockNumber?: string } | null>({
-      method: "eth_getTransactionReceipt",
-      params: [txHash],
-    });
-
-    // 核心修复：不仅检查 blockNumber，同时确保 status 存在，并使用 as 强行转换为非可选类型
-    if (receipt?.blockNumber && receipt?.status) {
-      return {
-        status: receipt.status,
-        blockNumber: receipt.blockNumber
-      } as { status: string; blockNumber: string };
-    }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
-  }
-  return null;
-}
-
-
+  ethAmount: bigint,
+): Promise<ExchangePreview> {
+  const [previewData, feeBpsData] = await Promise.all([
+    ethCall(ethereum, INDEPENDENT_POOL_LEDGER, `${SELECTORS.previewUsdc}${encodeUint(ethAmount)}`),
+    ethCall(ethereum, INDEPENDENT_POOL_LEDGER, SELECTORS.exchangeFeeBps),
+  ]);
   const [gross = BigInt(0), fee = BigInt(0), net = BigInt(0)] = splitWords(previewData).map((word) => BigInt(`0x${word}`));
   return {
     usdcAmount: gross,
@@ -217,14 +201,70 @@ export async function withdrawUsdcBalance({
   return sendLedgerTransaction(ethereum, from, buildWithdrawCalldata(usdcAmount));
 }
   
-export async function sendApprove({ ethereum, from, token, spender, amount }: any) {
+export async function sendApprove({
+  ethereum,
+  from,
+  token,
+  spender,
+  amount,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  token: string;
+  spender: string;
+  amount: bigint;
+}): Promise<string> {
   const data = buildApproveCalldata(spender, amount);
   return ethereum.request({ method: "eth_sendTransaction", params: [{ from, to: token, data }] });
 }
 
-export async function sendDeposit({ ethereum, from, pool, amount }: any) {
+export async function sendDeposit({
+  ethereum,
+  from,
+  pool,
+  amount,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  pool: string;
+  amount: bigint;
+}): Promise<string> {
   const data = buildDepositCalldata(amount);
   return ethereum.request({ method: "eth_sendTransaction", params: [{ from, to: pool, data }] });
+}
+
+export async function sendApproveTransaction({
+  ethereum,
+  from,
+  tokenAddress,
+  spender,
+  amount,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  tokenAddress: string;
+  spender: string;
+  amount: bigint;
+}) {
+  const txHash = await sendApprove({ ethereum, from, token: tokenAddress, spender, amount });
+  const receipt = await waitForTransaction(ethereum, txHash);
+  return { txHash, receipt, success: receipt?.status === "0x1" };
+}
+
+export async function sendDepositTransaction({
+  ethereum,
+  from,
+  poolAddress,
+  amount,
+}: {
+  ethereum: Eip1193Provider;
+  from: string;
+  poolAddress: string;
+  amount: bigint;
+}) {
+  const txHash = await sendDeposit({ ethereum, from, pool: poolAddress, amount });
+  const receipt = await waitForTransaction(ethereum, txHash);
+  return { txHash, receipt, success: receipt?.status === "0x1" };
 }
 
 
@@ -276,5 +316,3 @@ export function buildApproveCalldata(spender: string, value: bigint): string {
 export function buildDepositCalldata(amount: bigint): string {
   return `0xb6b55f25${encodeUint(amount)}`;
 }
-
-
