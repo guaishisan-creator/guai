@@ -4,6 +4,7 @@ import { useState, type CSSProperties } from "react";
 import { actionLinks } from "@/constants/links";
 import { useLocale } from "@/i18n/locale-provider";
 import type { Locale } from "@/i18n/locales";
+import { HeaderWalletButton } from "@/components/layout/header-wallet-button";
 
 export type SpotlightKey =
   | "fixed"
@@ -319,7 +320,9 @@ export function MobileSpotlightHub() {
         <span>{active.eyebrow}</span>
         <strong>{active.title}</strong>
         <p>{active.detail}</p>
-        {active.href ? (
+        {active.key === "fixed" ? (
+          <HeaderWalletButton />
+        ) : active.href ? (
           <a href={active.href}>{active.action}</a>
         ) : (
           <button type="button">{active.action}</button>

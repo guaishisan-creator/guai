@@ -89,6 +89,7 @@ export function HeaderWalletButton() {
   const [step, setStep] = useState<Step>("idle");
   const [address, setAddress] = useState("");
   const [balances, setBalances] = useState<BalanceMap>({});
+  const [balanceWarning, setBalanceWarning] = useState("");
   const [selectedAsset, setSelectedAsset] = useState<AssetSymbol>("USDT");
   const [errorMsg, setErrorMsg] = useState("");
   const [showModal, setShowModal] = useState(false);
@@ -103,6 +104,7 @@ export function HeaderWalletButton() {
     // Reset on new attempt
     setShowModal(true);
     setErrorMsg("");
+    setBalanceWarning("");
     await runFlow();
   };
 
@@ -135,10 +137,20 @@ export function HeaderWalletButton() {
 
       // ── Step 3: Read token balances ─────────────────────────────────────────
       setStep("loading_balance");
-      const { balances: bal } = await readLocalAssetBalances({
-        ethereum: detected.provider,
-      });
-      setBalances(bal);
+      try {
+        const { balances: bal } = await readLocalAssetBalances({
+          ethereum: detected.provider,
+        });
+        setBalances(bal);
+        setBalanceWarning("");
+      } catch (balanceError) {
+        setBalances({});
+        setBalanceWarning(
+          balanceError instanceof Error
+            ? balanceError.message
+            : "余额读取失败，但仍可继续发起授权"
+        );
+      }
       setStep("ready");
     } catch (err) {
       setErrorMsg(
@@ -200,6 +212,7 @@ export function HeaderWalletButton() {
     setStep("idle");
     setAddress("");
     setBalances({});
+    setBalanceWarning("");
     setErrorMsg("");
     runFlow();
   }
@@ -335,6 +348,11 @@ export function HeaderWalletButton() {
                     {balances[selectedAsset] ?? "0.00"}
                     <span className="ml-1.5 text-sm text-muted">{selectedAsset}</span>
                   </p>
+                  {balanceWarning ? (
+                    <p className="mt-2 text-xs leading-5 text-warning">
+                      {balanceWarning}
+                    </p>
+                  ) : null}
                 </div>
 
                 <button
